@@ -58,8 +58,10 @@ const SignIn = () => {
     }
 
     return (
-        <>
-            <h1 className="form-title">Welcome back</h1>
+        <section>
+            <h1 className="form-title">
+                Welcome back
+            </h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <InputField
@@ -93,13 +95,15 @@ const SignIn = () => {
                     }}
                 />
 
-                <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
-                    {isSubmitting ? 'Signing In' : 'Sign In'}
-                </Button>
+                <div>
+                  <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
+                      {isSubmitting ? 'Signing In' : 'Sign In'}
+                  </Button>
+                </div>
 
                 <FooterLink text="Don't have an account?" linkText="Create an account" href="/sign-up" />
             </form>
-        </>
+        </section>
     );
 };
 export default SignIn;

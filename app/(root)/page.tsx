@@ -1,20 +1,24 @@
 import React from 'react'
 import {Button} from "@/components/ui/button";
 import TradingViewWidget from "@/components/TradingViewWidget";
-import config from "@/postcss.config.mjs";
 import {
     HEATMAP_WIDGET_CONFIG,
     MARKET_DATA_WIDGET_CONFIG,
     MARKET_OVERVIEW_WIDGET_CONFIG,
     TOP_STORIES_WIDGET_CONFIG
 } from "@/lib/constants";
+import AIMarketSummary from "@/components/dashboard/AIMarketSummary";
+import TopMovers from "@/components/dashboard/TopMovers";
+import SentimentRadar from "@/components/dashboard/SentimentRadar";
+import SectorPerformance from "@/components/dashboard/SectorPerformance";
+import AnimatedSection from "@/components/common/AnimatedSection";
 
 const Home = () => {
     const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
 
     return (
         <div className="flex min-h-screen home-wrapper">
-            <section className="grid w-full gap-8 home-section">
+            <AnimatedSection>
                 <div className="md:col-span-1 xl:col-span-1">
                     <TradingViewWidget
                         title="Market Overview"
@@ -32,8 +36,8 @@ const Home = () => {
                         height={600}
                     />
                 </div>
-            </section>
-            <section className="grid w-full gap-8 home-section">
+            </AnimatedSection>
+            <AnimatedSection>
                 <div className="h-full md:col-span-1 xl:col-span-1">
                     <TradingViewWidget
                         scriptUrl={`${scriptUrl}timeline.js`}
@@ -48,7 +52,26 @@ const Home = () => {
                         height={600}
                     />
                 </div>
-            </section>
+            </AnimatedSection>
+
+            {/* Hybrid AI + Analytics Section */}
+            <AnimatedSection>
+                {/* Column 1: AI Summary + Sentiment */}
+                <div className="space-y-4 md:col-span-1 xl:col-span-1">
+                    <AIMarketSummary />
+                    <SentimentRadar />
+                </div>
+
+                {/* Column 2: Top Movers */}
+                <div className="md:col-span-1 xl:col-span-1">
+                    <TopMovers />
+                </div>
+
+                {/* Column 3: Sector Performance */}
+                <div className="md:col-span-1 xl:col-span-1">
+                    <SectorPerformance />
+                </div>
+            </AnimatedSection>
         </div>
     )
 }
