@@ -2,6 +2,7 @@ import TradingViewWidget from "@/components/TradingViewWidget";
 import WatchlistButton from "@/components/WatchlistButton";
 import StockNews from "@/components/StockNews";
 import NewsSentiment from "@/components/NewsSentiment";
+import TradeDialog from "@/components/TradeDialog";
 import {
     SYMBOL_INFO_WIDGET_CONFIG,
     CANDLE_CHART_WIDGET_CONFIG,
@@ -10,7 +11,7 @@ import {
     COMPANY_PROFILE_WIDGET_CONFIG,
     COMPANY_FINANCIALS_WIDGET_CONFIG,
 }
-from "@/lib/constants";
+    from "@/lib/constants";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
@@ -30,7 +31,7 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
             const symbolsList = await getWatchlistSymbolsByEmail(email);
             isInWatchlist = symbolsList.includes(symUpper);
         }
-    } catch {}
+    } catch { }
 
     return (
         <div className="flex min-h-screen p-4 md:p-6 lg:p-8">
@@ -62,13 +63,16 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
                 <div className="flex flex-col gap-6">
                     <div className="flex items-center justify-between">
                         <WatchlistButton symbol={symUpper} company={symUpper} isInWatchlist={isInWatchlist} />
-                        <a
-                            href={symUpper ? `/alerts/new?symbol=${encodeURIComponent(symUpper)}` : `/alerts/new`}
-                            className="add-alert px-3 py-2 rounded-md bg-yellow-500 text-yellow-900 font-medium hover:opacity-90 transition"
-                            aria-label={symUpper ? `Create price alert for ${symUpper}` : 'Create price alert'}
-                        >
-                            Add Alert
-                        </a>
+                        <div className="flex gap-2">
+                            <a
+                                href={symUpper ? `/alerts/new?symbol=${encodeURIComponent(symUpper)}` : `/alerts/new`}
+                                className="add-alert px-3 py-2 rounded-md bg-yellow-500 text-yellow-900 font-medium hover:opacity-90 transition"
+                                aria-label={symUpper ? `Create price alert for ${symUpper}` : 'Create price alert'}
+                            >
+                                Add Alert
+                            </a>
+                            <TradeDialog symbol={symUpper} />
+                        </div>
                     </div>
 
                     {/* Innovative: sentiment gauge derived from latest headlines */}

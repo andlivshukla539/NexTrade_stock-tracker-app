@@ -6,7 +6,7 @@ export default async function StockNews({ symbol }: { symbol?: string }) {
   let articles: MarketNewsArticle[] = [];
   try {
     articles = await getNews(sym ? [sym] : undefined);
-  } catch (e) {
+  } catch {
     // Fail softly – show empty state
     articles = [];
   }

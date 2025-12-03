@@ -1,5 +1,16 @@
 import nodemailer from 'nodemailer';
-import {WELCOME_EMAIL_TEMPLATE, NEWS_SUMMARY_EMAIL_TEMPLATE} from "@/lib/nodemailer/templates";
+import {
+    WELCOME_EMAIL_TEMPLATE,
+    NEWS_SUMMARY_EMAIL_TEMPLATE,
+    STOCK_ALERT_UPPER_EMAIL_TEMPLATE,
+    STOCK_ALERT_LOWER_EMAIL_TEMPLATE
+} from "@/lib/nodemailer/templates";
+
+interface WelcomeEmailData {
+    email: string;
+    name: string;
+    intro: string;
+}
 
 export const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -23,7 +34,7 @@ export const sendWelcomeEmail = async ({ email, name, intro }: WelcomeEmailData)
         .replace('{{intro}}', intro);
 
     const mailOptions = {
-        from: `"NexTrade" <nextrade@jsmastery.pro>`,
+        from: `"NexTrade" <nextrade@andlivshukla>`,
         to: email,
         subject: `Welcome to NexTrade - your stock market toolkit is ready!`,
         text: 'Thanks for joining NexTrade',
@@ -41,10 +52,50 @@ export const sendNewsSummaryEmail = async (
         .replace('{{newsContent}}', newsContent);
 
     const mailOptions = {
-        from: `"NexTrade News" <nextrade@jsmastery.pro>`,
+        from: `"NexTrade News" <nextrade@andlivshukla>`,
         to: email,
         subject: `📈 Market News Summary Today - ${date}`,
         text: `Today's market news summary from NexTrade`,
+        html: htmlTemplate,
+    };
+
+    await transporter.sendMail(mailOptions);
+};
+
+export const sendPriceAlertEmail = async ({
+    email,
+    symbol,
+    currentPrice,
+    targetPrice,
+    condition,
+    timestamp,
+}: {
+    email: string;
+    symbol: string;
+    currentPrice: number;
+    targetPrice: number;
+    condition: "ABOVE" | "BELOW";
+    timestamp: string;
+}) => {
+    const template =
+        condition === "ABOVE"
+            ? STOCK_ALERT_UPPER_EMAIL_TEMPLATE
+            : STOCK_ALERT_LOWER_EMAIL_TEMPLATE;
+
+    const htmlTemplate = template
+        .replace("{{symbol}}", symbol)
+        .replace("{{currentPrice}}", currentPrice.toFixed(2))
+        .replace("{{targetPrice}}", targetPrice.toFixed(2))
+        .replace("{{timestamp}}", timestamp)
+        .replace("{{company}}", "Stock Alert");
+
+    const subject = `Price Alert: ${symbol} is ${condition === "ABOVE" ? "above" : "below"
+        } ${targetPrice}`;
+
+    const mailOptions = {
+        from: `"NexTrade Alerts" <nextrade@andlivshukla>`,
+        to: email,
+        subject,
         html: htmlTemplate,
     };
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import {Button} from "@/components/ui/button";
+
 import TradingViewWidget from "@/components/TradingViewWidget";
 import {
     HEATMAP_WIDGET_CONFIG,
@@ -7,7 +7,6 @@ import {
     MARKET_OVERVIEW_WIDGET_CONFIG,
     TOP_STORIES_WIDGET_CONFIG
 } from "@/lib/constants";
-import AIMarketSummary from "@/components/dashboard/AIMarketSummary";
 import TopMovers from "@/components/dashboard/TopMovers";
 import SentimentRadar from "@/components/dashboard/SentimentRadar";
 import SectorPerformance from "@/components/dashboard/SectorPerformance";
@@ -17,7 +16,7 @@ const Home = () => {
     const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
 
     return (
-        <div className="flex min-h-screen home-wrapper">
+        <div className="flex flex-col gap-10 min-h-screen home-wrapper">
             <AnimatedSection>
                 <div className="md:col-span-1 xl:col-span-1">
                     <TradingViewWidget
@@ -28,7 +27,7 @@ const Home = () => {
                         height={600}
                     />
                 </div>
-                <div className="md-col-span xl:col-span-2">
+                <div className="md:col-span-1 xl:col-span-2">
                     <TradingViewWidget
                         title="Stock Heatmap"
                         scriptUrl={`${scriptUrl}stock-heatmap.js`}
@@ -58,7 +57,6 @@ const Home = () => {
             <AnimatedSection>
                 {/* Column 1: AI Summary + Sentiment */}
                 <div className="space-y-4 md:col-span-1 xl:col-span-1">
-                    <AIMarketSummary />
                     <SentimentRadar />
                 </div>
 

@@ -4,7 +4,7 @@ import { getDateRange, validateArticle, formatArticle } from '@/lib/utils';
 import { POPULAR_STOCK_SYMBOLS } from '@/lib/constants';
 import { cache } from 'react';
 
-    const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
+const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 const NEXT_PUBLIC_FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
 
 async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T> {
@@ -184,3 +184,17 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
         return [];
     }
 });
+
+export async function getQuote(symbol: string): Promise<number | null> {
+    try {
+        const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+        if (!token) throw new Error('FINNHUB API key is not configured');
+
+        const url = `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}&token=${token}`;
+        const data = await fetchJSON<{ c: number }>(url, 0); // 0 = no cache for real-time
+        return data.c || null;
+    } catch (error) {
+        console.error(`Error fetching quote for ${symbol}:`, error);
+        return null;
+    }
+}

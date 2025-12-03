@@ -1,0 +1,24 @@
+import { Schema, model, models } from "mongoose";
+
+const PortfolioSchema = new Schema({
+    userId: {
+        type: String,
+        required: true,
+    },
+    symbol: {
+        type: String,
+        required: true,
+    },
+    quantity: {
+        type: Number,
+        required: true,
+    },
+    avgPrice: {
+        type: Number,
+        required: true,
+    },
+}, { timestamps: true });
+
+const Portfolio = models.Portfolio || model("Portfolio", PortfolioSchema);
+
+export default Portfolio;

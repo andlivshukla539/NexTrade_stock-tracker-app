@@ -2,10 +2,10 @@ import { getNews } from "@/lib/actions/finnhub.actions";
 
 // Very small lexicon for demonstration; intentionally minimal to avoid heavy logic.
 const POSITIVE_WORDS = new Set([
-  "beat","beats","surge","surges","rise","rises","rising","gain","gains","gained","bull","bullish","up","soar","soars","record","strong","optimistic","upgrade","upgrades","outperform","tops","profit","profits","positive"
+  "beat", "beats", "surge", "surges", "rise", "rises", "rising", "gain", "gains", "gained", "bull", "bullish", "up", "soar", "soars", "record", "strong", "optimistic", "upgrade", "upgrades", "outperform", "tops", "profit", "profits", "positive"
 ]);
 const NEGATIVE_WORDS = new Set([
-  "miss","misses","fall","falls","fell","drop","drops","plunge","plunges","bear","bearish","down","loss","losses","weak","pessimistic","downgrade","downgrades","underperform","cuts","cut","warning","warns","negative"
+  "miss", "misses", "fall", "falls", "fell", "drop", "drops", "plunge", "plunges", "bear", "bearish", "down", "loss", "losses", "weak", "pessimistic", "downgrade", "downgrades", "underperform", "cuts", "cut", "warning", "warns", "negative"
 ]);
 
 function scoreText(text: string): number {
@@ -40,7 +40,7 @@ export default async function NewsSentiment({ symbol }: { symbol?: string }) {
   let articles: MarketNewsArticle[] = [];
   try {
     articles = await getNews(sym ? [sym] : undefined);
-  } catch (e) {
+  } catch {
     articles = [];
   }
 

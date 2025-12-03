@@ -10,11 +10,11 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {useRouter} from "next/navigation";
-import {Button} from "@/components/ui/button";
-import {LogOut, ImagePlus, Shuffle} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { LogOut, ImagePlus, Shuffle } from "lucide-react";
 import NavItems from "@/components/NavItems";
-import {signOut} from "@/lib/actions/auth.actions";
+import { signOut } from "@/lib/actions/auth.actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
@@ -77,7 +77,7 @@ const usePreferredAvatar = (user: User) => {
                 if (detail && detail.key && detail.key !== prefKey(user)) return;
                 // Optimistically apply the provided URL to avoid perceived delay
                 if (detail && detail.url) setPreferred(detail.url);
-            } catch {}
+            } catch { }
             load();
         };
         window.addEventListener('storage', onStorage);
@@ -86,12 +86,12 @@ const usePreferredAvatar = (user: User) => {
             window.removeEventListener('storage', onStorage);
             window.removeEventListener('nt-avatar-updated', onCustom as EventListener);
         };
-    }, [user.id, user.email, user.name]);
+    }, [user.id, user.email, user.name, user]);
 
     return preferred;
 }
 
-const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: StockWithWatchlistStatus[]}) => {
+const UserDropdown = ({ user, initialStocks }: { user: User, initialStocks: StockWithWatchlistStatus[] }) => {
     const router = useRouter();
     const preferred = usePreferredAvatar(user);
     const [open, setOpen] = React.useState(false);
@@ -99,13 +99,13 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
     // Local working state for dialog selections
     const [working, setWorking] = React.useState<AvatarPref>({ mode: 'dicebear' });
     const [preview, setPreview] = React.useState<string>(buildCreativeAvatar(user));
-    
+
     // Simple prefetch to warm the browser cache and reduce perceived delay
     const prefetch = React.useCallback((url: string) => {
         try {
             const img = new Image();
             img.src = url;
-        } catch {}
+        } catch { }
     }, []);
 
     React.useEffect(() => {
@@ -121,13 +121,13 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                 else { const url = buildCreativeAvatar(user, { sprite: pref.sprite, seed: pref.seed }); setPreview(url); prefetch(url); }
                 return;
             }
-        } catch {}
+        } catch { }
         // default
         setWorking({ mode: 'dicebear' });
         const url = buildCreativeAvatar(user);
         setPreview(url);
         prefetch(url);
-    }, [open, user.id, user.email, user.name]);
+    }, [open, user.id, user.email, user.name, user, prefetch]);
 
     const persist = (pref: AvatarPref) => {
         localStorage.setItem(prefKey(user), JSON.stringify(pref));
@@ -214,7 +214,7 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                         </div>
                     </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-gray-600"/>
+                <DropdownMenuSeparator className="bg-gray-600" />
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                         <DropdownMenuItem className="text-gray-100 text-md font-medium focus:bg-transparent focus:text-yellow-500 transition-colors cursor-pointer">
@@ -234,7 +234,7 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                             <div className="flex flex-col gap-2 grow">
                                 <div className="flex gap-2">
                                     <Button size="sm" variant="secondary" onClick={handleShuffle}>
-                                        <Shuffle className="h-4 w-4 mr-1"/> Shuffle
+                                        <Shuffle className="h-4 w-4 mr-1" /> Shuffle
                                     </Button>
                                     <Button size="sm" variant="secondary" onClick={handleCycleStyle}>
                                         Next style
@@ -244,7 +244,7 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                                     {dicebearStyles.map((s) => {
                                         const url = buildCreativeAvatar(user, { sprite: s, seed: working.seed });
                                         return (
-                                            <button key={s} type="button" onClick={() => { setWorking({ mode: 'dicebear', sprite: s, seed: working.seed }); setPreview(url); prefetch(url); }} className={`rounded-full overflow-hidden ring-1 ${working.sprite===s? 'ring-yellow-400' : 'ring-transparent'} hover:ring-yellow-300`}>
+                                            <button key={s} type="button" onClick={() => { setWorking({ mode: 'dicebear', sprite: s, seed: working.seed }); setPreview(url); prefetch(url); }} className={`rounded-full overflow-hidden ring-1 ${working.sprite === s ? 'ring-yellow-400' : 'ring-transparent'} hover:ring-yellow-300`}>
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img alt={s} src={url} className="h-12 w-12" />
                                             </button>
@@ -252,7 +252,7 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                                     })}
                                 </div>
                                 <div className="mt-3 flex items-center gap-2">
-                                    <Input type="file" accept="image/*" onChange={(e) => { const f=e.target.files?.[0]; if (f) handleUpload(f); }} />
+                                    <Input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
                                 </div>
                             </div>
                         </div>
@@ -266,7 +266,7 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                     <LogOut className="h-4 w-4 mr-2 hidden sm:block" />
                     Logout
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="hidden sm:block bg-gray-600"/>
+                <DropdownMenuSeparator className="hidden sm:block bg-gray-600" />
                 <nav className="sm:hidden">
                     <NavItems initialStocks={initialStocks} />
                 </nav>

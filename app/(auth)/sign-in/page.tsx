@@ -4,10 +4,10 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import InputField from '@/components/forms/InputField';
 import FooterLink from '@/components/forms/FooterLink';
-import {signInWithEmail} from "@/lib/actions/auth.actions";
-import {toast} from "sonner";
-import {useRouter, useSearchParams} from "next/navigation";
-import {useEffect} from "react";
+import { signInWithEmail } from "@/lib/actions/auth.actions";
+import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 const SignIn = () => {
     const router = useRouter()
@@ -39,7 +39,7 @@ const SignIn = () => {
     const onSubmit = async (data: SignInFormData) => {
         try {
             const result = await signInWithEmail(data);
-            if(result.success) {
+            if (result.success) {
                 toast.success('Welcome back!', {
                     description: 'You have been successfully signed in.'
                 });
@@ -70,8 +70,8 @@ const SignIn = () => {
                     placeholder="contact@example.com"
                     register={register}
                     error={errors.email}
-                    validation={{ 
-                        required: 'Email is required', 
+                    validation={{
+                        required: 'Email is required',
                         pattern: {
                             value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                             message: 'Please enter a valid email address'
@@ -86,8 +86,8 @@ const SignIn = () => {
                     type="password"
                     register={register}
                     error={errors.password}
-                    validation={{ 
-                        required: 'Password is required', 
+                    validation={{
+                        required: 'Password is required',
                         minLength: {
                             value: 8,
                             message: 'Password must be at least 8 characters long'
@@ -96,9 +96,9 @@ const SignIn = () => {
                 />
 
                 <div>
-                  <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
-                      {isSubmitting ? 'Signing In' : 'Sign In'}
-                  </Button>
+                    <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
+                        {isSubmitting ? 'Signing In' : 'Sign In'}
+                    </Button>
                 </div>
 
                 <FooterLink text="Don't have an account?" linkText="Create an account" href="/sign-up" />
