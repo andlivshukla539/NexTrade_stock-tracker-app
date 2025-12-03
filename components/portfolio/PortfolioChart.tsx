@@ -28,7 +28,7 @@ interface PortfolioChartProps {
     holdings: Holding[];
 }
 
-export default function PortfolioChart({ holdings }: PortfolioChartProps) {
+export function PortfolioChart({ holdings }: PortfolioChartProps) {
     // Calculate allocation data
     const allocationData = holdings.map((h) => ({
         name: h.symbol,
@@ -118,3 +118,5 @@ export default function PortfolioChart({ holdings }: PortfolioChartProps) {
         </div>
     );
 }
+
+export default PortfolioChart;

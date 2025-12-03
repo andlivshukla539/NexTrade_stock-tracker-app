@@ -68,11 +68,11 @@ const TransactionForm = ({
         }
     }, [currentPrice, setValue]);
 
-    const handleFormSubmit = (data: any) => {
+    const handleFormSubmit = (data: { symbol: string; quantity: string; price: string | number }) => {
         onSubmit({
             symbol: data.symbol,
             quantity: parseFloat(data.quantity),
-            price: parseFloat(data.price),
+            price: parseFloat(data.price.toString()),
             type
         });
         reset();

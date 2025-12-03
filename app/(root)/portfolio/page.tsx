@@ -1,5 +1,5 @@
 import React from "react";
-import dynamic from "next/dynamic";
+
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { connectToDatabase } from "@/database/mongoose";
@@ -16,10 +16,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-const PortfolioChart = dynamic(
-    () => import("@/components/portfolio/PortfolioChart"),
-    { ssr: false }
-);
+import { PortfolioChart } from "@/components/portfolio/PortfolioChart";
 
 async function getPortfolioData(userId: string) {
     await connectToDatabase();
@@ -155,8 +152,8 @@ export default async function PortfolioPage() {
                     <CardContent>
                         <div
                             className={`text-2xl font-bold ${totalPnL >= 0
-                                    ? "text-green-500"
-                                    : "text-red-500"
+                                ? "text-green-500"
+                                : "text-red-500"
                                 }`}
                         >
                             $
@@ -259,8 +256,8 @@ export default async function PortfolioPage() {
 
                                             <TableCell
                                                 className={`text-right ${pnl >= 0
-                                                        ? "text-green-500"
-                                                        : "text-red-500"
+                                                    ? "text-green-500"
+                                                    : "text-red-500"
                                                     }`}
                                             >
                                                 {pnl >= 0 ? "+" : "-"}$

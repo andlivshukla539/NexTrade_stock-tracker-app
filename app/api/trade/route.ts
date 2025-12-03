@@ -41,7 +41,7 @@ export async function POST(req: Request) {
             await balance.save();
 
             // UPDATE PORTFOLIO
-            let holding = await Portfolio.findOne({ userId, symbol });
+            const holding = await Portfolio.findOne({ userId, symbol });
             if (holding) {
                 // Calculate new average price
                 const totalValue = (holding.quantity * holding.avgPrice) + totalCost;

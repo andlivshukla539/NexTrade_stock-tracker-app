@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { getQuote } from "@/lib/actions/finnhub.actions";
 
-export default function TradePageClient({ balance }: { balance: number }) {
+export default function TradePageClient() {
     const [loading, setLoading] = useState(false);
     const [currentPrice, setCurrentPrice] = useState<number | null>(null);
     const [isFetchingPrice, setIsFetchingPrice] = useState(false);

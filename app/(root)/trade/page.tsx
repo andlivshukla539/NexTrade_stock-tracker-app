@@ -21,6 +21,23 @@ import { getQuote } from "@/lib/actions/finnhub.actions";
 // but to use Framer Motion we need a client component wrapper. 
 // Let's create a client wrapper for the content.
 
+interface Holding {
+    symbol: string;
+    quantity: number;
+    avgPrice: number;
+    currentPrice: number;
+}
+
+interface TransactionType {
+    _id: string;
+    type: string;
+    symbol: string;
+    quantity: number;
+    price: number;
+    totalAmount: number;
+    createdAt: string;
+}
+
 async function getTradeData(userId: string) {
     await connectToDatabase();
 
@@ -36,7 +53,7 @@ async function getTradeData(userId: string) {
 
     // Fetch current prices for holdings to calculate real portfolio value
     let totalPortfolioValue = 0;
-    const holdingsWithPrice = await Promise.all(holdings.map(async (h: any) => {
+    const holdingsWithPrice = await Promise.all(holdings.map(async (h: Holding) => {
         const currentPrice = await getQuote(h.symbol);
         const price = currentPrice || h.avgPrice; // Fallback to avgPrice if fetch fails
         totalPortfolioValue += price * h.quantity;
@@ -94,7 +111,7 @@ export default async function TradePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Trading Form */}
                 <div className="lg:col-span-1">
-                    <TradePageClient balance={balance} />
+                    <TradePageClient />
                 </div>
 
                 {/* Holdings & Recent Activity */}
@@ -120,7 +137,7 @@ export default async function TradePage() {
                                             <TableCell colSpan={5} className="text-center text-gray-500 py-4">No holdings</TableCell>
                                         </TableRow>
                                     ) : (
-                                        holdings.map((h: any) => {
+                                        holdings.map((h: Holding) => {
                                             const currentVal = h.currentPrice * h.quantity;
                                             const costBasis = h.avgPrice * h.quantity;
                                             const gainLoss = currentVal - costBasis;
@@ -167,7 +184,7 @@ export default async function TradePage() {
                                             <TableCell colSpan={6} className="text-center text-gray-500 py-4">No transactions yet</TableCell>
                                         </TableRow>
                                     ) : (
-                                        transactions.map((t: any) => (
+                                        transactions.map((t: TransactionType) => (
                                             <TableRow key={t._id} className="border-gray-700 hover:bg-gray-700/50">
                                                 <TableCell className={`font-medium uppercase ${t.type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>{t.type}</TableCell>
                                                 <TableCell className="text-gray-200">{t.symbol}</TableCell>
