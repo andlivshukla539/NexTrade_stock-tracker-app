@@ -81,17 +81,17 @@ const TransactionForm = ({
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
             <div className="space-y-2">
-                <Label htmlFor="symbol" className="text-gray-200">Stock Symbol</Label>
+                <Label htmlFor="symbol" className="text-gray-100 font-medium">Stock Symbol</Label>
                 <div className="relative">
                     <Input
                         id="symbol"
                         placeholder="AAPL"
                         {...register("symbol", { required: "Symbol is required" })}
-                        className="uppercase bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500"
+                        className="uppercase bg-gray-950 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                     />
                     {isFetchingPrice && (
                         <div className="absolute right-3 top-2.5">
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                         </div>
                     )}
                 </div>
@@ -101,28 +101,28 @@ const TransactionForm = ({
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="type" className="text-gray-200">Transaction Type</Label>
+                <Label htmlFor="type" className="text-gray-100 font-medium">Transaction Type</Label>
                 <Select value={type} onValueChange={(value) => setType(value as "buy" | "sell")}>
-                    <SelectTrigger className="bg-gray-900 border-gray-700 text-gray-100">
+                    <SelectTrigger className="bg-gray-950 border-gray-600 text-white focus:ring-blue-500">
                         <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700 text-gray-100">
-                        <SelectItem value="buy" className="focus:bg-gray-700 focus:text-gray-100">Buy</SelectItem>
-                        <SelectItem value="sell" className="focus:bg-gray-700 focus:text-gray-100">Sell</SelectItem>
+                    <SelectContent className="bg-gray-900 border-gray-700 text-white">
+                        <SelectItem value="buy" className="focus:bg-gray-800 focus:text-white cursor-pointer">Buy</SelectItem>
+                        <SelectItem value="sell" className="focus:bg-gray-800 focus:text-white cursor-pointer">Sell</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="quantity" className="text-gray-200">Quantity</Label>
+                    <Label htmlFor="quantity" className="text-gray-100 font-medium">Quantity</Label>
                     <Input
                         id="quantity"
                         type="number"
                         step="0.01"
                         placeholder="0"
                         {...register("quantity", { required: "Quantity is required", min: 0.01 })}
-                        className="bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500"
+                        className="bg-gray-950 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
                     />
                     {errors.quantity && (
                         <p className="text-sm text-red-500">{errors.quantity.message as string}</p>
@@ -130,9 +130,9 @@ const TransactionForm = ({
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="price" className="text-gray-200">
+                    <Label htmlFor="price" className="text-gray-100 font-medium">
                         Price per Share
-                        {currentPrice && <span className="text-xs text-gray-400 ml-2">(Live)</span>}
+                        {currentPrice && <span className="text-xs text-green-400 ml-2">(Live)</span>}
                     </Label>
                     <Input
                         id="price"
@@ -141,7 +141,7 @@ const TransactionForm = ({
                         placeholder="0.00"
                         {...register("price", { required: "Price is required", min: 0.01 })}
                         readOnly={!!currentPrice} // Optional: prevent manual edit if live price exists
-                        className={`bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 ${currentPrice ? "bg-gray-800" : ""}`}
+                        className={`bg-gray-950 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 ${currentPrice ? "bg-gray-900 cursor-not-allowed opacity-90" : ""}`}
                     />
                     {errors.price && (
                         <p className="text-sm text-red-500">{errors.price.message as string}</p>
