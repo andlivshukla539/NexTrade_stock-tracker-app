@@ -936,11 +936,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-<<<<<<< HEAD
-                            <img src="/assets/icons/logo.svg" alt="NexTrade Logo" width="150" style="max-width: 100%; height: auto;">
-=======
                             <img src="https://ik.imagekit.io/vo8ytaqfgo/logo.png?updatedAt=1761246840184" alt="NexTrade Logo" width="150" style="max-width: 100%; height: auto;">
->>>>>>> ba6af2941306b3366bd6ecd28c80780894ee77ca
                         </td>
                     </tr>
                     

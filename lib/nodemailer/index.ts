@@ -61,7 +61,7 @@ export const sendNewsSummaryEmail = async (
 
     await transporter.sendMail(mailOptions);
 };
-<<<<<<< HEAD
+
 
 export const sendPriceAlertEmail = async ({
     email,
@@ -102,5 +102,4 @@ export const sendPriceAlertEmail = async ({
 
     await transporter.sendMail(mailOptions);
 };
-=======
->>>>>>> ba6af2941306b3366bd6ecd28c80780894ee77ca
+
