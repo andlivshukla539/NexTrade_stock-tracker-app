@@ -26,24 +26,26 @@ export const transporter = nodemailer.createTransport({
         user: process.env.NODEMAILER_EMAIL!,
         pass: process.env.NODEMAILER_PASSWORD!,
     }
-})
+});
 
+// ---------- Welcome Email ----------
 export const sendWelcomeEmail = async ({ email, name, intro }: WelcomeEmailData) => {
     const htmlTemplate = WELCOME_EMAIL_TEMPLATE
         .replace('{{name}}', name)
         .replace('{{intro}}', intro);
 
     const mailOptions = {
-        from: `"NexTrade" <nextrade@andlivshukla>`,
+        from: `"NexTrade" <${process.env.NODEMAILER_EMAIL}>`,
         to: email,
         subject: `Welcome to NexTrade - your stock market toolkit is ready!`,
         text: 'Thanks for joining NexTrade',
         html: htmlTemplate,
-    }
+    };
 
     await transporter.sendMail(mailOptions);
-}
+};
 
+// ---------- News Summary Email ----------
 export const sendNewsSummaryEmail = async (
     { email, date, newsContent }: { email: string; date: string; newsContent: string }
 ): Promise<void> => {
@@ -52,7 +54,7 @@ export const sendNewsSummaryEmail = async (
         .replace('{{newsContent}}', newsContent);
 
     const mailOptions = {
-        from: `"NexTrade News" <nextrade@andlivshukla>`,
+        from: `"NexTrade News" <${process.env.NODEMAILER_EMAIL}>`,
         to: email,
         subject: `📈 Market News Summary Today - ${date}`,
         text: `Today's market news summary from NexTrade`,
@@ -62,7 +64,7 @@ export const sendNewsSummaryEmail = async (
     await transporter.sendMail(mailOptions);
 };
 
-
+// ---------- Price Alerts ----------
 export const sendPriceAlertEmail = async ({
     email,
     symbol,
@@ -94,7 +96,7 @@ export const sendPriceAlertEmail = async ({
         } ${targetPrice}`;
 
     const mailOptions = {
-        from: `"NexTrade Alerts" <nextrade@andlivshukla>`,
+        from: `"NexTrade Alerts" <${process.env.NODEMAILER_EMAIL}>`,
         to: email,
         subject,
         html: htmlTemplate,
@@ -102,4 +104,3 @@ export const sendPriceAlertEmail = async ({
 
     await transporter.sendMail(mailOptions);
 };
-
