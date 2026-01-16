@@ -79,8 +79,6 @@
 .dark {
     /* 🔥 BACKGROUND SYSTEM */
     --background: oklch(0 0 0);
-    background-color: #000000 !important;
-    backdrop-filter: none !important;
     --foreground: oklch(0.984 0.003 247.858);
 
     /* Cards = TRUE BLACK for solid UI */
