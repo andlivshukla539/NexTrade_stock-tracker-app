@@ -86,7 +86,7 @@
     --card-foreground: oklch(0.984 0.003 247.858);
 
     /* ✅ Popovers = TRUE BLACK (No Transparency/Blur) */
-    --popover: 0 0% 0%;
+    --popover: oklch(0 0 0);
     --popover-foreground: oklch(0.984 0.003 247.858);
     --popover-opacity: 1;
     --primary: oklch(0.929 0.013 255.508);
