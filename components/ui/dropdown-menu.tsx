@@ -58,7 +58,7 @@ const DropdownMenuSubContent = React.forwardRef<
       "z-50 min-w-[8rem] overflow-hidden rounded-md p-1 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
       className
     )}
-    style={variant === "dark" ? { backgroundColor: '#000000', opacity: 1, backdropFilter: 'none' } : props.style}
+    style={variant === "dark" ? { backgroundColor: '#000000', opacity: 1, backdropFilter: 'none', WebkitBackdropFilter: 'none' } : props.style}
     {...props}
   />
 ))
@@ -83,7 +83,8 @@ const DropdownMenuContent = React.forwardRef<
         "z-50 min-w-[8rem] overflow-hidden rounded-md p-1 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         className
       )}
-      style={variant === "dark" ? { backgroundColor: '#000000', opacity: 1, backdropFilter: 'none' } : props.style}
+      style={variant === "dark" ? { backgroundColor: '#000000', opacity: 1, backdropFilter: 'none', WebkitBackdropFilter: 'none' } : props.style}
+      data-slot="dropdown-menu-content"
       {...props}
     />
   </DropdownMenuPrimitive.Portal>
