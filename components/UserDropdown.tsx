@@ -180,7 +180,7 @@ const UserDropdown = ({
         <>
             {/* EDIT AVATAR DIALOG */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent 
+                <DialogContent
                     style={{ backgroundColor: '#000000', opacity: 1, backdropFilter: 'none' }}
                     className="!bg-black !opacity-100 border border-white/10 text-white rounded-xl"
                 >
@@ -264,7 +264,7 @@ const UserDropdown = ({
                     align="end"
                     sideOffset={12}
                     variant="dark"
-                    style={{ backgroundColor: '#000000 !important', opacity: '1 !important', backdropFilter: 'none !important' } as any}
+                    style={{ backgroundColor: '#000000 !important', opacity: '1 !important', backdropFilter: 'none !important' } as React.CSSProperties}
                     className="w-[300px] border border-white/20 rounded-xl shadow-2xl p-0 overflow-hidden !bg-black !opacity-100"
                 >
                     <div className="!bg-black w-full h-full">
