@@ -67,6 +67,8 @@ const SignUp = () => {
                     register={register}
                     error={errors.fullName}
                     validation={{ required: 'Full name is required', minLength: 2 }}
+                    autoComplete="name"
+                    autoFocus
                 />
 
                 <InputField
@@ -82,6 +84,7 @@ const SignUp = () => {
                             message: 'Please enter a valid email address'
                         }
                     }}
+                    autoComplete="email"
                 />
 
                 <InputField
@@ -102,6 +105,7 @@ const SignUp = () => {
                             message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
                         }
                     }}
+                    autoComplete="new-password"
                 />
 
                 <CountrySelectField

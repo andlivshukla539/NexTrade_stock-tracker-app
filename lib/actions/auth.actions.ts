@@ -1,14 +1,14 @@
 'use server';
 
-import {auth} from "@/lib/better-auth/auth";
-import {inngest} from "@/lib/inngest/client";
-import {headers} from "next/headers";
+import { auth } from "@/lib/better-auth/auth";
+import { inngest } from "@/lib/inngest/client";
+import { headers } from "next/headers";
 
 export const signUpWithEmail = async ({ email, password, fullName, country, investmentGoals, riskTolerance, preferredIndustry }: SignUpFormData) => {
     try {
         const response = await auth.api.signUpEmail({ body: { email, password, name: fullName } })
 
-        if(response) {
+        if (response) {
             // Send welcome email asynchronously
             try {
                 await inngest.send({
@@ -29,13 +29,24 @@ export const signUpWithEmail = async ({ email, password, fullName, country, inve
     }
 }
 
-export const signInWithEmail = async ({ email, password }: SignInFormData) => {
+export const signInWithEmail = async ({ email, password, rememberMe }: { email: string, password: string, rememberMe?: boolean }) => {
     try {
-        const response = await auth.api.signInEmail({ body: { email, password } })
+        const response = await auth.api.signInEmail({
+            headers: await headers(),
+            body: {
+                email,
+                password,
+                rememberMe
+            }
+        })
 
         return { success: true, data: response }
     } catch (e: unknown) {
-        console.error('Sign in failed:', e)
+        console.error('❌ Sign in failed (Server Action):', e);
+        // Log stack trace if available
+        if (e instanceof Error) {
+            console.error(e.stack);
+        }
         const errorMessage = e instanceof Error ? e.message : 'Invalid email or password. Please try again.'
         return { success: false, error: errorMessage }
     }

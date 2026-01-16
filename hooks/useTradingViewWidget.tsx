@@ -8,11 +8,16 @@ const useTradingViewWidget = (
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const configString = JSON.stringify(config);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let observer: IntersectionObserver | null = null;
+
     const loadWidget = () => {
+      if (!container) return;
       // Reset container to avoid duplicate widgets or malformed markup
       container.innerHTML = '';
 
@@ -27,29 +32,38 @@ const useTradingViewWidget = (
       script.src = scriptUrl;
       script.async = true;
       script.type = 'text/javascript';
-      script.text = JSON.stringify(config);
+      script.text = JSON.stringify({
+        ...config,
+        width: '100%',
+        height: height,
+      });
       container.appendChild(script);
     };
 
-    const observer = new IntersectionObserver(
+    observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             loadWidget();
-            observer.disconnect();
+            if (observer) {
+              observer.unobserve(entry.target);
+              observer.disconnect();
+            }
           }
         });
       },
-      { rootMargin: '200px' } // Load when within 200px of viewport
+      { rootMargin: '200px', threshold: 0.01 } // Load when within 200px of viewport
     );
 
     observer.observe(container);
 
     return () => {
-      observer.disconnect();
+      if (observer) {
+        observer.disconnect();
+      }
       container.innerHTML = '';
     };
-  }, [scriptUrl, height, JSON.stringify(config)]);
+  }, [scriptUrl, height, configString, config]);
 
   return containerRef;
 };

@@ -6,6 +6,7 @@ A modern, full-stack stock market application built with Next.js 15, featuring r
 
 - **Real-time Stock Data**: Live stock prices and market data via Finnhub API
 - **User Authentication**: Secure sign-up and sign-in with Better Auth
+- **Google OAuth**: One-click sign-in with Google (with 30-day session persistence)
 - **Personalized Watchlist**: Track your favorite stocks
 - **Stock Alerts**: Set price alerts for your investments
 - **Market News**: Stay updated with relevant market news
@@ -31,6 +32,7 @@ A modern, full-stack stock market application built with Next.js 15, featuring r
 - Node.js 18+ 
 - MongoDB database
 - Finnhub API key
+- Google OAuth credentials (for Google sign-in)
 
 ### Environment Variables
 
@@ -43,6 +45,11 @@ MONGODB_URI=your_mongodb_connection_string
 # Authentication
 BETTER_AUTH_SECRET=your_secret_key
 BETTER_AUTH_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Google OAuth (for "Continue with Google")
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 # Finnhub API
 FINNHUB_API_KEY=your_finnhub_api_key
@@ -110,11 +117,27 @@ npm run dev
 
 - **Enhanced Error Handling**: Comprehensive error boundaries and user-friendly error messages
 - **Improved Authentication Flow**: Better sign-up/sign-in experience with proper redirects
+- **Google OAuth Integration**: Fully functional "Continue with Google" with 30-day session persistence
+- **Remember Me Feature**: Sessions are automatically remembered for 30 days for both email and Google sign-in
 - **Form Validation**: Robust client-side validation with detailed error messages
 - **Performance Optimizations**: Optimized imports, image formats, and caching strategies
 - **Security**: Removed dangerous build error ignoring settings
 - **Code Quality**: Better TypeScript types and improved code structure
 - **User Experience**: Loading states, success messages, and better feedback
+
+## 🔐 Google OAuth Setup
+
+To enable Google sign-in:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google+ API
+4. Go to "Credentials" → "Create Credentials" → "OAuth client ID"
+5. Configure the OAuth consent screen
+6. Set authorized redirect URIs:
+   - Development: `http://localhost:3000/api/auth/callback/google`
+   - Production: `https://yourdomain.com/api/auth/callback/google`
+7. Copy the Client ID and Client Secret to your `.env.local` file
 
 ## 🚀 Deployment
 

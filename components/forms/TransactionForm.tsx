@@ -103,7 +103,7 @@ const TransactionForm = ({
             <div className="space-y-2">
                 <Label htmlFor="type" className="text-gray-100 font-medium">Transaction Type</Label>
                 <Select value={type} onValueChange={(value) => setType(value as "buy" | "sell")}>
-                    <SelectTrigger className="bg-gray-950 border-gray-600 text-white focus:ring-blue-500">
+                    <SelectTrigger className="w-full bg-gray-950 border-gray-600 text-white focus:ring-blue-500">
                         <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-gray-700 text-white">

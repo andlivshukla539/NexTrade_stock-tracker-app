@@ -5,273 +5,315 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useRouter } from "next/navigation";
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LogOut, ImagePlus, Shuffle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import NavItems from "@/components/NavItems";
 import { signOut } from "@/lib/actions/auth.actions";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { generateUserAvatar } from "@/lib/avatar";
 
-// Build a fun, consistent avatar using DiceBear, seeded by the user's identity
-const dicebearStyles = ['adventurer', 'bottts', 'fun-emoji', 'micah', 'identicon', 'shapes'] as const;
+/* ================= INLINE ICONS (TURBOPACK SAFE) ================= */
+
+const IconLogOut = ({ className = "" }) => (
+    <svg
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <polyline points="16 17 21 12 16 7" />
+        <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+);
+
+const IconCamera = ({ className = "" }) => (
+    <svg
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+        <circle cx="12" cy="13" r="4" />
+    </svg>
+);
+
+const IconShuffle = ({ className = "" }) => (
+    <svg
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <polyline points="16 3 21 3 21 8" />
+        <line x1="4" y1="20" x2="21" y2="3" />
+        <polyline points="21 16 21 21 16 21" />
+        <line x1="15" y1="15" x2="21" y2="21" />
+        <line x1="4" y1="4" x2="9" y2="9" />
+    </svg>
+);
+
+const IconImagePlus = ({ className = "" }) => (
+    <svg
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <polyline points="21 15 16 10 5 21" />
+        <line x1="12" y1="10" x2="12" y2="16" />
+        <line x1="9" y1="13" x2="15" y2="13" />
+    </svg>
+);
+
+/* ================= TYPES ================= */
 
 type AvatarPref = {
-    mode: 'dicebear' | 'upload' | 'url';
-    sprite?: typeof dicebearStyles[number];
-    seed?: string;
-    dataUrl?: string; // for uploads
-    url?: string; // for external URL
+    mode: "upload";
+    dataUrl: string;
 };
 
-const prefKey = (user: User) => `nt/avatar-pref/${user.id || user.email || user.name || 'user'}`;
+const prefKey = (user: User) =>
+    `nt/avatar-pref/${user.id || user.email || user.name || "user"}`;
 
-const buildCreativeAvatar = (user: User, override?: Partial<AvatarPref>) => {
-    const seedBase = user.id || user.email || user.name || 'user';
-    const seed = override?.seed || seedBase;
-    const hash = Array.from(seed).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-    const sprite = override?.sprite || dicebearStyles[hash % dicebearStyles.length];
-    const encodedSeed = encodeURIComponent(seed);
-    // Rounded with soft gradient background for better look on dark UI
-    return `https://api.dicebear.com/7.x/${sprite}/svg?seed=${encodedSeed}&backgroundType=gradientLinear&radius=50`;
-}
+/* ================= HOOK ================= */
 
 const usePreferredAvatar = (user: User) => {
-    const [preferred, setPreferred] = React.useState<string | null>(null);
+    const [avatar, setAvatar] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        const load = () => {
-            try {
-                const raw = localStorage.getItem(prefKey(user));
-                if (!raw) {
-                    setPreferred(null);
-                    return;
-                }
-                const pref: AvatarPref = JSON.parse(raw);
-                if (pref.mode === 'upload' && pref.dataUrl) setPreferred(pref.dataUrl);
-                else if (pref.mode === 'url' && pref.url) setPreferred(pref.url);
-                else if (pref.mode === 'dicebear') setPreferred(buildCreativeAvatar(user, { sprite: pref.sprite, seed: pref.seed }));
-                else setPreferred(null);
-            } catch {
-                setPreferred(null);
-            }
-        };
-
-        // initial load on mount/user change
-        load();
-
-        // Listen for cross-tab changes and our own in-tab custom event
-        const onStorage = (e: StorageEvent) => {
-            if (e.key && e.key !== prefKey(user)) return;
-            load();
-        };
-        const onCustom = (e: Event) => {
-            // optional filtering if detail.key is present
-            try {
-                const detail = (e as CustomEvent).detail as { key?: string, url?: string } | undefined;
-                if (detail && detail.key && detail.key !== prefKey(user)) return;
-                // Optimistically apply the provided URL to avoid perceived delay
-                if (detail && detail.url) setPreferred(detail.url);
-            } catch { }
-            load();
-        };
-        window.addEventListener('storage', onStorage);
-        window.addEventListener('nt-avatar-updated', onCustom as EventListener);
-        return () => {
-            window.removeEventListener('storage', onStorage);
-            window.removeEventListener('nt-avatar-updated', onCustom as EventListener);
-        };
-    }, [user.id, user.email, user.name, user]);
-
-    return preferred;
-}
-
-const UserDropdown = ({ user, initialStocks }: { user: User, initialStocks: StockWithWatchlistStatus[] }) => {
-    const router = useRouter();
-    const preferred = usePreferredAvatar(user);
-    const [open, setOpen] = React.useState(false);
-
-    // Local working state for dialog selections
-    const [working, setWorking] = React.useState<AvatarPref>({ mode: 'dicebear' });
-    const [preview, setPreview] = React.useState<string>(buildCreativeAvatar(user));
-
-    // Simple prefetch to warm the browser cache and reduce perceived delay
-    const prefetch = React.useCallback((url: string) => {
         try {
-            const img = new Image();
-            img.src = url;
+            const raw = localStorage.getItem(prefKey(user));
+            if (!raw) return;
+            const pref: AvatarPref = JSON.parse(raw);
+            setAvatar(pref.dataUrl);
         } catch { }
+    }, [user]);
+
+    return avatar;
+};
+
+/* ================= COMPONENT ================= */
+
+const UserDropdown = ({
+    user,
+    initialStocks,
+}: {
+    user: User;
+    initialStocks: StockWithWatchlistStatus[];
+}) => {
+    const router = useRouter();
+
+    const preferred = usePreferredAvatar(user);
+
+    const [mounted, setMounted] = React.useState(false);
+    const [avatarSrc, setAvatarSrc] = React.useState<string | null>(null);
+    const [preview, setPreview] = React.useState<string | null>(null);
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
     }, []);
 
     React.useEffect(() => {
-        // Initialize working state from stored preference when opening
-        if (!open) return;
-        try {
-            const raw = localStorage.getItem(prefKey(user));
-            if (raw) {
-                const pref = JSON.parse(raw) as AvatarPref;
-                setWorking(pref);
-                if (pref.mode === 'upload' && pref.dataUrl) { setPreview(pref.dataUrl); }
-                else if (pref.mode === 'url' && pref.url) { setPreview(pref.url); }
-                else { const url = buildCreativeAvatar(user, { sprite: pref.sprite, seed: pref.seed }); setPreview(url); prefetch(url); }
-                return;
-            }
-        } catch { }
-        // default
-        setWorking({ mode: 'dicebear' });
-        const url = buildCreativeAvatar(user);
-        setPreview(url);
-        prefetch(url);
-    }, [open, user.id, user.email, user.name, user, prefetch]);
+        if (!mounted) return;
 
-    const persist = (pref: AvatarPref) => {
-        localStorage.setItem(prefKey(user), JSON.stringify(pref));
-        setPreview(prev => prev); // noop to keep state
-    }
-
-    const handleShuffle = () => {
-        // random seed variation to feel fresh
-        const newSeed = Math.random().toString(36).slice(2);
-        const pref: AvatarPref = { mode: 'dicebear', seed: `${user.id || user.email || user.name}-${newSeed}` };
-        setWorking(pref);
-        const url = buildCreativeAvatar(user, { seed: pref.seed });
-        setPreview(url);
-        prefetch(url);
-    }
-
-    const handleCycleStyle = () => {
-        const currentSprite = working.sprite || dicebearStyles[0];
-        const nextIndex = (dicebearStyles.indexOf(currentSprite) + 1) % dicebearStyles.length;
-        const pref: AvatarPref = { mode: 'dicebear', sprite: dicebearStyles[nextIndex], seed: working.seed };
-        setWorking(pref);
-        const url = buildCreativeAvatar(user, { sprite: pref.sprite, seed: pref.seed });
-        setPreview(url);
-        prefetch(url);
-    }
-
-    const handleUpload = (file: File) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const dataUrl = String(reader.result || '');
-            const pref: AvatarPref = { mode: 'upload', dataUrl };
-            setWorking(pref);
-            setPreview(dataUrl);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    const handleSave = () => {
-        persist(working);
-        setOpen(false);
-        // notify this tab (and any listeners) to reload avatar preference immediately with optimistic URL
-        const ev = new CustomEvent('nt-avatar-updated', { detail: { key: prefKey(user), url: preview } });
-        window.dispatchEvent(ev);
-    }
-
-    const resolvedSrc = preferred || user.image || buildCreativeAvatar(user);
+        if (preferred) {
+            setAvatarSrc(preferred);
+            setPreview(preferred);
+        } else if (user.image) {
+            setAvatarSrc(user.image);
+            setPreview(user.image);
+        } else {
+            const generated = generateUserAvatar(
+                user.id || user.email || "default"
+            );
+            setAvatarSrc(generated);
+            setPreview(generated);
+        }
+    }, [mounted, preferred, user]);
 
     const handleSignOut = async () => {
         await signOut();
         router.push("/sign-in");
-    }
+    };
+
+    const handleSave = () => {
+        if (!preview) return;
+        localStorage.setItem(
+            prefKey(user),
+            JSON.stringify({ mode: "upload", dataUrl: preview })
+        );
+        setAvatarSrc(preview);
+        setDialogOpen(false);
+    };
+
+    if (!mounted || !avatarSrc) return null;
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-3 text-gray-4 hover:text-yellow-500">
-                    <Avatar className="h-8 w-8 ring-1 ring-yellow-500/30">
-                        <AvatarImage key={resolvedSrc} src={resolvedSrc} />
-                        <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
-                            {user.name?.[0] || 'U'}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div className="hidden md:flex flex-col items-start">
-                        <span className='text-base font-medium text-gray-400'>
-                            {user.name}
-                        </span>
-                    </div>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="text-gray-400">
-                <DropdownMenuLabel>
-                    <div className="flex relative items-center gap-3 py-2">
-                        <Avatar className="h-10 w-10 ring-1 ring-yellow-500/30">
-                            <AvatarImage key={resolvedSrc} src={resolvedSrc} />
-                            <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
-                                {user.name?.[0] || 'U'}
-                            </AvatarFallback>
+        <>
+            {/* EDIT AVATAR DIALOG */}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent 
+                    style={{ backgroundColor: '#000000', opacity: 1, backdropFilter: 'none' }}
+                    className="!bg-black !opacity-100 border border-white/10 text-white rounded-xl"
+                >
+                    <DialogHeader>
+                        <DialogTitle>Edit profile photo</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="flex flex-col items-center gap-6 py-6">
+                        <Avatar className="h-32 w-32 ring-4 ring-white/10">
+                            <AvatarImage src={preview ?? undefined} />
+                            <AvatarFallback>P</AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col">
-                            <span className='text-base font-medium text-gray-400'>
-                                {user.name}
-                            </span>
-                            <span className="text-sm text-gray-500">{user.email}</span>
-                        </div>
-                    </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-gray-600" />
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                        <DropdownMenuItem className="text-gray-100 text-md font-medium focus:bg-transparent focus:text-yellow-500 transition-colors cursor-pointer">
-                            <ImagePlus className="h-4 w-4 mr-2 hidden sm:block" />
-                            Change photo
-                        </DropdownMenuItem>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[520px] text-gray-300">
-                        <DialogHeader>
-                            <DialogTitle>Update profile photo</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex gap-4 items-start">
-                            <Avatar className="h-20 w-20 ring-2 ring-yellow-500/50">
-                                <AvatarImage src={preview} />
-                                <AvatarFallback className="bg-yellow-500 text-yellow-900 font-bold">{user.name?.[0] || 'U'}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-2 grow">
-                                <div className="flex gap-2">
-                                    <Button size="sm" variant="secondary" onClick={handleShuffle}>
-                                        <Shuffle className="h-4 w-4 mr-1" /> Shuffle
-                                    </Button>
-                                    <Button size="sm" variant="secondary" onClick={handleCycleStyle}>
-                                        Next style
-                                    </Button>
-                                </div>
-                                <div className="grid grid-cols-6 gap-2 mt-2">
-                                    {dicebearStyles.map((s) => {
-                                        const url = buildCreativeAvatar(user, { sprite: s, seed: working.seed });
-                                        return (
-                                            <button key={s} type="button" onClick={() => { setWorking({ mode: 'dicebear', sprite: s, seed: working.seed }); setPreview(url); prefetch(url); }} className={`rounded-full overflow-hidden ring-1 ${working.sprite === s ? 'ring-yellow-400' : 'ring-transparent'} hover:ring-yellow-300`}>
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img alt={s} src={url} className="h-12 w-12" />
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <div className="mt-3 flex items-center gap-2">
-                                    <Input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
-                                </div>
+
+                        <div className="flex w-full gap-2">
+                            <Button
+                                variant="outline"
+                                className="flex-1 !bg-black border-white/10 hover:bg-white/5"
+                                onClick={() => {
+                                    const seed = Math.random().toString(36);
+                                    setPreview(generateUserAvatar(seed));
+                                }}
+                            >
+                                <IconShuffle className="mr-2 h-4 w-4" />
+                                Randomize
+                            </Button>
+
+                            <div className="relative flex-1">
+                                <Button
+                                    variant="outline"
+                                    className="w-full !bg-black border-white/10 hover:bg-white/5"
+                                >
+                                    <IconImagePlus className="mr-2 h-4 w-4" />
+                                    Upload
+                                </Button>
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        const reader = new FileReader();
+                                        reader.onload = () =>
+                                            setPreview(reader.result as string);
+                                        reader.readAsDataURL(file);
+                                    }}
+                                />
                             </div>
                         </div>
-                        <DialogFooter>
-                            <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
-                            <Button onClick={handleSave}>Save</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-                <DropdownMenuItem onClick={handleSignOut} className="text-gray-100 text-md font-medium focus:bg-transparent focus:text-yellow-500 transition-colors cursor-pointer">
-                    <LogOut className="h-4 w-4 mr-2 hidden sm:block" />
-                    Logout
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="hidden sm:block bg-gray-600" />
-                <nav className="sm:hidden">
-                    <NavItems initialStocks={initialStocks} />
-                </nav>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    )
-}
-export default UserDropdown
+                    </div>
+
+                    <DialogFooter className="flex justify-between">
+                        <Button variant="ghost" onClick={() => setDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            className="bg-yellow-500 text-black hover:bg-yellow-400"
+                            onClick={handleSave}
+                        >
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* USER DROPDOWN */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-3 px-2">
+                        <Avatar className="h-9 w-9 ring-2 ring-white/10">
+                            <AvatarImage src={avatarSrc} />
+                            <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
+                        </Avatar>
+                        <span className="hidden md:block text-sm font-medium">
+                            {user.name}
+                        </span>
+                    </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                    align="end"
+                    sideOffset={12}
+                    variant="dark"
+                    style={{ backgroundColor: '#000000 !important', opacity: '1 !important', backdropFilter: 'none !important' } as any}
+                    className="w-[300px] border border-white/20 rounded-xl shadow-2xl p-0 overflow-hidden !bg-black !opacity-100"
+                >
+                    <div className="!bg-black w-full h-full">
+                        <div className="flex flex-col items-center p-6 !bg-black">
+                            <div
+                                className="relative cursor-pointer group"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setDialogOpen(true);
+                                }}
+                            >
+                                <Avatar className="h-20 w-20 ring-4 ring-black">
+                                    <AvatarImage src={avatarSrc} />
+                                    <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
+                                </Avatar>
+
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/80 rounded-full opacity-0 group-hover:opacity-100 transition">
+                                    <IconCamera className="h-6 w-6 text-white" />
+                                </div>
+                            </div>
+
+                            <h3 className="mt-4 font-semibold text-white">{user.name}</h3>
+                            <p className="text-sm text-gray-400 truncate max-w-[200px]">
+                                {user.email}
+                            </p>
+                        </div>
+
+                        <DropdownMenuSeparator className="bg-white/5" />
+
+                        <div className="p-2 !bg-black">
+                            <nav className="sm:hidden mb-2">
+                                <NavItems initialStocks={initialStocks} />
+                                <DropdownMenuSeparator className="bg-white/5 my-2" />
+                            </nav>
+
+                            <DropdownMenuItem
+                                onClick={handleSignOut}
+                                className="flex items-center gap-2 text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 focus:text-red-400 cursor-pointer"
+                            >
+                                <IconLogOut className="h-4 w-4" />
+                                Log out
+                            </DropdownMenuItem>
+                        </div>
+                    </div>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </>
+    );
+};
+
+export default UserDropdown;

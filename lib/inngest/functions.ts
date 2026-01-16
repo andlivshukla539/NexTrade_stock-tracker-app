@@ -1,6 +1,6 @@
 import { inngest } from "@/lib/inngest/client";
 import { NEWS_SUMMARY_EMAIL_PROMPT, PERSONALIZED_WELCOME_EMAIL_PROMPT } from "@/lib/inngest/prompts";
-import { sendNewsSummaryEmail, sendWelcomeEmail, sendPriceAlertEmail } from "@/lib/nodemailer";
+import { sendNewsSummaryEmail, sendWelcomeEmail } from "@/lib/nodemailer";
 import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews } from "@/lib/actions/finnhub.actions";
@@ -41,7 +41,7 @@ export const sendSignUpEmail = inngest.createFunction(
                 });
                 const part = response.candidates?.[0]?.content?.parts?.[0];
                 introText = (part && 'text' in part ? part.text : null) || introText;
-            } catch (e) {
+            } catch {
                 console.warn('sendSignUpEmail: AI intro generation skipped due to error or missing config. Falling back to default.');
             }
         }
@@ -113,7 +113,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
                 const newsContent = (part && 'text' in part ? part.text : null) || 'No market news.'
 
                 userNewsSummaries.push({ user, newsContent });
-            } catch (e) {
+            } catch {
                 console.error('Failed to summarize news for : ', user.email);
                 userNewsSummaries.push({ user, newsContent: null });
             }
@@ -199,6 +199,7 @@ export const checkPriceAlerts = inngest.createFunction(
         if (triggeredAlerts.length > 0) {
             await step.run('send-alert-emails', async () => {
                 for (const item of triggeredAlerts) {
+                    console.log(`Triggering alert for ${item.symbol}: ${item.currentPrice}`);
                     // Fetch user email (assuming we have a way to get user, or we stored email in Alert)
                     // Since Alert model only has userId, we need to fetch user.
                     // For simplicity in this demo, let's assume we can get it or it was stored.
