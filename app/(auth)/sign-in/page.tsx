@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,7 +12,7 @@ import { authClient } from '@/lib/better-auth/auth-client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 // ---------------- SCHEMA ----------------
 const SignInSchema = z.object({
@@ -33,16 +33,7 @@ export default function SignIn() {
         resolver: zodResolver(SignInSchema),
     });
 
-    // ENTER KEY SUBMIT
-    useEffect(() => {
-        const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'Enter') handleSubmit(onSubmit)();
-        };
-        window.addEventListener('keydown', handleKey);
-        return () => window.removeEventListener('keydown', handleKey);
-    }, [handleSubmit]);
-
-    const onSubmit = async (data: SignInFormData) => {
+    const onSubmit = useCallback(async (data: SignInFormData) => {
         setLoading(true);
         setError(null);
         const res = await signInWithEmail(data);
@@ -53,9 +44,9 @@ export default function SignIn() {
         } else {
             setError(res.error || 'Sign in failed. Please try again.');
         }
-    };
+    }, [router]);
 
-    const socialLogin = async () => {
+    const socialLogin = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -67,7 +58,16 @@ export default function SignIn() {
             setError('Social sign-in failed. Please try again.');
             setLoading(false);
         }
-    };
+    }, []);
+
+    // ENTER KEY SUBMIT
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Enter') handleSubmit(onSubmit)();
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [handleSubmit, onSubmit]);
 
     return (
         <motion.div
