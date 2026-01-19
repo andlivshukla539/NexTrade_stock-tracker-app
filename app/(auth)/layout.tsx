@@ -14,8 +14,8 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
     return (
         <main className="h-screen w-full bg-black relative isolate flex">
             {/* ================= LEFT : AUTH ================= */}
-            <section className="auth-left-section scrollbar-hide-default relative z-20 flex flex-col">
-                <Link href="/" className="auth-logo mb-8">
+            <section className="auth-left-section scrollbar-hide-default relative z-20 flex flex-col w-full lg:w-1/2 xl:w-[45%] h-full overflow-y-auto px-8 lg:px-12">
+                <Link href="/" className="auth-logo mb-8 pt-8 block">
                     <Image
                         src="/assets/icons/logo.svg"
                         alt="NexTrade logo"
@@ -25,23 +25,23 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
                     />
                 </Link>
 
-                <div className="flex-1 pb-6 lg:pb-8">
+                <div className="flex-1 pb-6 lg:pb-8 flex flex-col justify-center">
                     {children}
                 </div>
             </section>
 
             {/* ================= RIGHT : PREVIEW ================= */}
-            <section className="auth-right-section relative flex flex-col h-full">
+            <section className="auth-right-section relative hidden lg:flex flex-col h-full w-1/2 xl:w-[55%] overflow-hidden bg-primary/5">
                 {/* Testimonial */}
-                <div className="relative z-20 lg:mt-6 lg:mb-16 max-w-md px-6">
-                    <blockquote className="text-gray-200 text-lg leading-relaxed">
-                        NexTrade’s alerts feel like having a pro trader on my side —
-                        I never miss a good entry anymore.
+                <div className="relative z-20 mt-auto mb-16 max-w-lg px-12 self-center">
+                    <blockquote className="text-gray-200 text-lg leading-relaxed font-light">
+                        "NexTrade’s alerts feel like having a pro trader on my side —
+                        I never miss a good entry anymore."
                     </blockquote>
 
                     <div className="mt-6 flex items-center justify-between">
                         <div>
-                            <cite className="block text-sm text-white font-medium">
+                            <cite className="block text-sm text-white font-medium not-italic">
                                 — Liam Parker
                             </cite>
                             <p className="text-xs text-gray-400">
