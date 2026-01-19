@@ -4,11 +4,7 @@ import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function AuthLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+const Layout = async ({ children }: { children: React.ReactNode }) => {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
@@ -16,9 +12,9 @@ export default async function AuthLayout({
     if (session?.user) redirect("/");
 
     return (
-        <main className="min-h-screen w-full bg-black relative isolate overflow-hidden flex">
+        <main className="h-screen w-full bg-black relative isolate flex">
             {/* LEFT */}
-            <section className="auth-left-section relative z-10">
+            <section className="auth-left-section scrollbar-hide-default relative z-10">
                 <Link href="/" className="auth-logo">
                     <Image
                         src="/assets/icons/logo.svg"
@@ -29,16 +25,17 @@ export default async function AuthLayout({
                     />
                 </Link>
 
-                <div className="flex-1 pb-6 lg:pb-8">
+                <div className="pb-6 lg:pb-8 flex-1">
                     {children}
                 </div>
             </section>
 
             {/* RIGHT */}
-            <section className="auth-right-section relative">
+            <section className="auth-right-section relative flex flex-col h-full">
                 <div className="relative z-10 lg:mt-4 lg:mb-16">
                     <blockquote className="auth-blockquote">
-                        NexTrade’s alerts feel like having a pro trader on my side — I never miss a good entry anymore.
+                        NexTrade’s alerts feel like having a pro trader on my side —
+                        I never miss a good entry anymore.
                     </blockquote>
 
                     <div className="flex items-center justify-between">
@@ -46,7 +43,7 @@ export default async function AuthLayout({
                             <cite className="auth-testimonial-author">
                                 - Liam Parker
                             </cite>
-                            <p className="text-gray-500 text-sm">
+                            <p className="max-md:text-xs text-gray-500">
                                 Retail Investor
                             </p>
                         </div>
@@ -68,7 +65,7 @@ export default async function AuthLayout({
                 <div className="flex-1 relative">
                     <Image
                         src="/assets/images/dashboard.png"
-                        alt="Dashboard Preview"
+                        alt="NexTrade dashboard preview"
                         fill
                         priority
                         className="object-cover opacity-60"
@@ -77,4 +74,6 @@ export default async function AuthLayout({
             </section>
         </main>
     );
-}
+};
+
+export default Layout;
