@@ -1,36 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth } from "@/lib/better-auth/auth";
+import { getSessionCookie } from "better-auth/cookies";
 
 export async function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+    const sessionCookie = getSessionCookie(request);
 
-    // Skip middleware for auth pages, API routes, static files, and assets
-    if (
-        pathname.startsWith('/sign-in') ||
-        pathname.startsWith('/sign-up') ||
-        pathname.startsWith('/api/') ||
-        pathname.startsWith('/_next/') ||
-        pathname.startsWith('/assets/') ||
-        pathname === '/favicon.ico'
-    ) {
-        return NextResponse.next();
-    }
-
-    // Check for valid session
-    try {
-        const auth = await getAuth();
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-
-        if (!session?.user) {
-            // No valid session, redirect to sign-in
+    if (!sessionCookie) {
+        // Only redirect if the request is not for auth pages or API routes
+        const { pathname } = request.nextUrl;
+        if (!pathname.startsWith('/sign-in') && 
+            !pathname.startsWith('/sign-up') && 
+            !pathname.startsWith('/api/') &&
+            !pathname.startsWith('/_next/') &&
+            !pathname.startsWith('/assets/')) {
             return NextResponse.redirect(new URL("/sign-in", request.url));
         }
-    } catch (error) {
-        // If session check fails, redirect to sign-in
-        console.error('Middleware session check failed:', error);
-        return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
     return NextResponse.next();

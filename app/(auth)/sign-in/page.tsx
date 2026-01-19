@@ -12,7 +12,7 @@ import { authClient } from '@/lib/better-auth/auth-client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
 // ---------------- SCHEMA ----------------
 const SignInSchema = z.object({
@@ -26,8 +26,7 @@ type SignInFormData = z.infer<typeof SignInSchema>;
 export default function SignIn() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
-    const [isEmailLoading, setIsEmailLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const { register, handleSubmit, control } = useForm<SignInFormData>({
@@ -37,22 +36,17 @@ export default function SignIn() {
     // ENTER KEY SUBMIT
     useEffect(() => {
         const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'Enter') {
-                handleSubmit((data) => {
-                    const res = signInWithEmail(data);
-                    return res;
-                })();
-            }
+            if (e.key === 'Enter') handleSubmit(onSubmit)();
         };
         window.addEventListener('keydown', handleKey);
         return () => window.removeEventListener('keydown', handleKey);
     }, [handleSubmit]);
 
     const onSubmit = async (data: SignInFormData) => {
-        setIsEmailLoading(true);
+        setLoading(true);
         setError(null);
         const res = await signInWithEmail(data);
-        setIsEmailLoading(false);
+        setLoading(false);
         if (res.success) {
             router.push('/');
             router.refresh();
@@ -62,16 +56,16 @@ export default function SignIn() {
     };
 
     const socialLogin = async () => {
-        setIsGoogleLoading(true);
+        setLoading(true);
         setError(null);
         try {
             await authClient.signIn.social({
                 provider: 'google',
                 callbackURL: '/',
             });
-        } catch {
+        } catch (err) {
             setError('Social sign-in failed. Please try again.');
-            setIsGoogleLoading(false);
+            setLoading(false);
         }
     };
 
@@ -87,7 +81,7 @@ export default function SignIn() {
                 {/* HEADER */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-semibold text-white">Welcome back</h1>
-                    <p className="text-sm text-gray-400 mt-1" suppressHydrationWarning>
+                    <p className="text-sm text-gray-400 mt-1">
                         Sign in to access your account
                     </p>
                 </div>
@@ -95,26 +89,16 @@ export default function SignIn() {
                 {/* GOOGLE */}
                 <button
                     onClick={socialLogin}
-                    disabled={isGoogleLoading || isEmailLoading}
-                    suppressHydrationWarning
-                    className="w-full h-12 rounded-full border border-white/20 text-white flex items-center justify-center gap-3 hover:bg-white/5 hover:border-white/40 transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading}
+                    className="w-full h-12 rounded-full border border-white/20 text-white flex items-center justify-center gap-3 hover:bg-white/5 hover:border-white/40 transition mb-6"
                 >
-                    {isGoogleLoading ? (
-                        <>
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            <span className="text-sm font-medium">Connecting...</span>
-                        </>
-                    ) : (
-                        <>
-                            <svg className="h-5 w-5" viewBox="0 0 24 24">
-                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22z" />
-                                <path fill="#EA4335" d="M12 4.63c1.69 0 3.26.58 4.54 1.8l3.29-3.29C17.45 1.14 14.97 0 12 0z" />
-                            </svg>
-                            <span className="text-sm font-medium">Continue with Google</span>
-                        </>
-                    )}
+                    <svg className="h-5 w-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22z" />
+                        <path fill="#EA4335" d="M12 4.63c1.69 0 3.26.58 4.54 1.8l3.29-3.29C17.45 1.14 14.97 0 12 0z" />
+                    </svg>
+                    <span className="text-sm font-medium">Continue with Google</span>
                 </button>
 
                 {/* DIVIDER */}
@@ -215,11 +199,10 @@ export default function SignIn() {
                     {/* SUBMIT */}
                     <button
                         type="submit"
-                        disabled={isEmailLoading || isGoogleLoading}
-                        suppressHydrationWarning
-                        className="w-full h-12 rounded-full bg-yellow-500 hover:bg-yellow-400 text-black font-semibold flex items-center justify-center transition disabled:opacity-70 disabled:cursor-not-allowed"
+                        disabled={loading}
+                        className="w-full h-12 rounded-full bg-yellow-500 hover:bg-yellow-400 text-black font-semibold flex items-center justify-center transition"
                     >
-                        {isEmailLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                        {loading ? <Loader2 className="animate-spin" /> : 'Sign In'}
                     </button>
                 </form>
 

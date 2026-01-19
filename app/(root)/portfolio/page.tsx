@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { connectToDatabase } from "@/database/mongoose";
 import Balance from "@/database/balance.model";
 import Portfolio from "@/database/models/portfolio.model";
+import { env } from "@/lib/env";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,6 +18,8 @@ import {
 } from "@/components/ui/table";
 
 import { PortfolioChart } from "@/components/portfolio/PortfolioChart";
+import { DepositCard } from "@/components/portfolio/DepositCard";
+import { Suspense } from "react";
 
 async function getPortfolioData(userId: string) {
     await connectToDatabase();
@@ -36,8 +39,11 @@ async function getPortfolioData(userId: string) {
             let currentPrice = doc.avgPrice;
 
             try {
+
+
+                // ... inside getPortfolioData ...
                 const res = await fetch(
-                    `https://finnhub.io/api/v1/quote?symbol=${doc.symbol}&token=${process.env.NEXT_PUBLIC_FINNHUB_API_KEY}`,
+                    `https://finnhub.io/api/v1/quote?symbol=${doc.symbol}&token=${env.NEXT_PUBLIC_FINNHUB_API_KEY}`,
                     { next: { revalidate: 60 } }
                 );
                 const data = await res.json();
@@ -89,15 +95,10 @@ export default async function PortfolioPage() {
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">My Portfolio</h1>
 
-                <div className="text-right">
-                    <p className="text-sm text-gray-400">Cash Balance</p>
-                    <p className="text-2xl font-bold text-green-400">
-                        $
-                        {balance.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                        })}
-                    </p>
+                <div className="w-full md:w-auto">
+                    <Suspense fallback={<div className="h-32 w-64 bg-gray-800 animate-pulse rounded-lg" />}>
+                        <DepositCard currentBalance={balance} />
+                    </Suspense>
                 </div>
             </div>
 

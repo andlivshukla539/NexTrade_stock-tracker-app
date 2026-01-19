@@ -42,11 +42,7 @@ export const signInWithEmail = async ({ email, password, rememberMe }: { email: 
 
         return { success: true, data: response }
     } catch (e: unknown) {
-        console.error('❌ Sign in failed (Server Action):', e);
-        // Log stack trace if available
-        if (e instanceof Error) {
-            console.error(e.stack);
-        }
+        console.error('Sign in failed:', e)
         const errorMessage = e instanceof Error ? e.message : 'Invalid email or password. Please try again.'
         return { success: false, error: errorMessage }
     }
