@@ -4,44 +4,77 @@ import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-const Layout = async ({ children }: { children: React.ReactNode }) => {
-    const session = await auth.api.getSession({ headers: await headers() })
+export default async function AuthLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
 
-    if (session?.user) redirect('/')
+    if (session?.user) redirect("/");
 
     return (
-        <main className="auth-layout">
-            <section className="auth-left-section scrollbar-hide-default">
+        <main className="min-h-screen w-full bg-black relative isolate overflow-hidden flex">
+            {/* LEFT */}
+            <section className="auth-left-section relative z-10">
                 <Link href="/" className="auth-logo">
-                    <Image src="/assets/icons/logo.svg" alt="NexTrade logo" width={140} height={32} className='h-8 w-auto' />
+                    <Image
+                        src="/assets/icons/logo.svg"
+                        alt="NexTrade logo"
+                        width={140}
+                        height={32}
+                        className="h-8 w-auto"
+                    />
                 </Link>
 
-                <div className="pb-6 lg:pb-8 flex-1">{children}</div>
+                <div className="flex-1 pb-6 lg:pb-8">
+                    {children}
+                </div>
             </section>
 
-            <section className="auth-right-section">
-                <div className="z-10 relative lg:mt-4 lg:mb-16">
+            {/* RIGHT */}
+            <section className="auth-right-section relative">
+                <div className="relative z-10 lg:mt-4 lg:mb-16">
                     <blockquote className="auth-blockquote">
                         NexTrade’s alerts feel like having a pro trader on my side — I never miss a good entry anymore.
                     </blockquote>
+
                     <div className="flex items-center justify-between">
                         <div>
-                            <cite className="auth-testimonial-author">- Liam Parker</cite>
-                            <p className="max-md:text-xs text-gray-500">Retail Investor</p>
+                            <cite className="auth-testimonial-author">
+                                - Liam Parker
+                            </cite>
+                            <p className="text-gray-500 text-sm">
+                                Retail Investor
+                            </p>
                         </div>
+
                         <div className="flex items-center gap-0.5">
                             {[1, 2, 3, 4, 5].map((star) => (
-                                <Image src="/assets/icons/star.svg" alt="Star" key={star} width={20} height={20} className="w-5 h-5" />
+                                <Image
+                                    key={star}
+                                    src="/assets/icons/star.svg"
+                                    alt="Star"
+                                    width={20}
+                                    height={20}
+                                />
                             ))}
                         </div>
                     </div>
                 </div>
 
                 <div className="flex-1 relative">
-                    <Image src="/assets/images/dashboard.png" alt="Dashboard Preview" width={1440} height={1150} className="auth-dashboard-preview absolute top-0" />
+                    <Image
+                        src="/assets/images/dashboard.png"
+                        alt="Dashboard Preview"
+                        fill
+                        priority
+                        className="object-cover opacity-60"
+                    />
                 </div>
             </section>
         </main>
-    )
+    );
 }
-export default Layout
