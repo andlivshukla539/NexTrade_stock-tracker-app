@@ -13,9 +13,9 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
 
     return (
         <main className="h-screen w-full bg-black relative isolate flex">
-            {/* LEFT */}
-            <section className="auth-left-section scrollbar-hide-default relative z-10">
-                <Link href="/" className="auth-logo">
+            {/* ================= LEFT : AUTH ================= */}
+            <section className="auth-left-section scrollbar-hide-default relative z-20 flex flex-col">
+                <Link href="/" className="auth-logo mb-8">
                     <Image
                         src="/assets/icons/logo.svg"
                         alt="NexTrade logo"
@@ -25,25 +25,26 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
                     />
                 </Link>
 
-                <div className="pb-6 lg:pb-8 flex-1">
+                <div className="flex-1 pb-6 lg:pb-8">
                     {children}
                 </div>
             </section>
 
-            {/* RIGHT */}
+            {/* ================= RIGHT : PREVIEW ================= */}
             <section className="auth-right-section relative flex flex-col h-full">
-                <div className="relative z-10 lg:mt-4 lg:mb-16">
-                    <blockquote className="auth-blockquote">
+                {/* Testimonial */}
+                <div className="relative z-20 lg:mt-6 lg:mb-16 max-w-md px-6">
+                    <blockquote className="text-gray-200 text-lg leading-relaxed">
                         NexTrade’s alerts feel like having a pro trader on my side —
                         I never miss a good entry anymore.
                     </blockquote>
 
-                    <div className="flex items-center justify-between">
+                    <div className="mt-6 flex items-center justify-between">
                         <div>
-                            <cite className="auth-testimonial-author">
-                                - Liam Parker
+                            <cite className="block text-sm text-white font-medium">
+                                — Liam Parker
                             </cite>
-                            <p className="max-md:text-xs text-gray-500">
+                            <p className="text-xs text-gray-400">
                                 Retail Investor
                             </p>
                         </div>
@@ -54,22 +55,26 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
                                     key={star}
                                     src="/assets/icons/star.svg"
                                     alt="Star"
-                                    width={20}
-                                    height={20}
+                                    width={18}
+                                    height={18}
                                 />
                             ))}
                         </div>
                     </div>
                 </div>
 
+                {/* Dashboard Preview */}
                 <div className="flex-1 relative">
                     <Image
                         src="/assets/images/dashboard.png"
                         alt="NexTrade dashboard preview"
                         fill
                         priority
-                        className="object-cover opacity-60"
+                        className="object-cover"
                     />
+
+                    {/* Dark + Blur Overlay */}
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
                 </div>
             </section>
         </main>
