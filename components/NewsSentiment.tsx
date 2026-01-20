@@ -52,25 +52,54 @@ export default async function NewsSentiment({ symbol }: { symbol?: string }) {
   const { label, color } = labelFromScore(normalized);
 
   return (
-    <div className="rounded-md border border-gray-700 p-4 bg-[#0f0f0f]">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold text-gray-100">News Sentiment</h3>
-        <span className="text-sm text-gray-400">{sym || "Market"}</span>
+    <div className="rounded-md border border-gray-700 p-6 bg-[#0f0f0f] h-full flex flex-col">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-bold text-gray-100">News Sentiment</h3>
+        <span className="text-sm font-mono text-gray-400 bg-gray-800 px-2 py-1 rounded">{sym || "MARKET"}</span>
       </div>
 
       {/* Gauge bar */}
-      <div className="w-full h-3 bg-[#1a1a1a] rounded-full overflow-hidden">
-        <div
-          className="h-3 transition-all"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
+      <div className="mb-8">
+        <div className="flex justify-between text-sm mb-2">
+          <span className="text-gray-400">Bearish</span>
+          <span className="text-gray-400">Neutral</span>
+          <span className="text-gray-400">Bullish</span>
+        </div>
+        <div className="w-full h-4 bg-[#1a1a1a] rounded-full overflow-hidden relative">
+          <div
+            className="h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+            style={{ width: `${pct}%`, backgroundColor: color }}
+          />
+        </div>
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-2xl font-bold" style={{ color }}>{label}</span>
+          <span className="text-sm text-gray-500 font-mono">Score: {pct}/100</span>
+        </div>
       </div>
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <span className="text-gray-300">{label}</span>
-        <span className="text-gray-500">Score: {pct}/100</span>
+
+      <div className="mb-4">
+        <h4 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Analyzed Stories</h4>
+        <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          {articles.slice(0, 5).map((art) => {
+            const dt = art.datetime ? new Date(art.datetime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+            return (
+              <a key={art.id} href={art.url} target="_blank" rel="noopener noreferrer" className="block group p-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/80 transition-all border border-transparent hover:border-gray-700">
+                <div className="flex justify-between items-start gap-2 mb-1">
+                  <h5 className="text-sm font-medium text-gray-200 group-hover:text-yellow-400 leading-snug line-clamp-2">{art.headline}</h5>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">{dt}</span>
+                </div>
+                <p className="text-xs text-gray-500 line-clamp-1">{art.summary}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded">{art.source}</span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
-      <p className="mt-3 text-xs text-gray-500">
-        Based on a quick lexical scan of recent headlines and summaries. This is an experimental, heuristic indicator — not financial advice.
+
+      <p className="mt-auto pt-4 border-t border-gray-800 text-[10px] text-gray-600 text-center">
+        AI-generated sentiment analysis based on recent market news. Not financial advice.
       </p>
     </div>
   );

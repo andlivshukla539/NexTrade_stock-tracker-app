@@ -171,6 +171,57 @@ export const MARKET_DATA_WIDGET_CONFIG = {
     ],
 };
 
+export const TOP_GAINERS_WIDGET_CONFIG = {
+    colorTheme: 'dark',
+    dateRange: '12M',
+    exchange: 'US',
+    showChart: true,
+    locale: 'en',
+    largeChartUrl: '',
+    isTransparent: true,
+    showSymbolLogo: true,
+    showFloatingTooltip: true,
+    width: '100%',
+    height: 600,
+    plotLineColorGrowing: 'rgba(41, 98, 255, 1)',
+    plotLineColorFalling: 'rgba(41, 98, 255, 1)',
+    gridLineColor: 'rgba(240, 243, 250, 0)',
+    scaleFontColor: 'rgba(120, 123, 134, 1)',
+    belowLineFillColorGrowing: 'rgba(41, 98, 255, 0.12)',
+    belowLineFillColorFalling: 'rgba(41, 98, 255, 0.12)',
+    belowLineFillColorGrowingBottom: 'rgba(41, 98, 255, 0)',
+    belowLineFillColorFallingBottom: 'rgba(41, 98, 255, 0)',
+    symbolActiveColor: 'rgba(41, 98, 255, 0.12)',
+};
+
+export const SECTOR_PERFORMANCE_WIDGET_CONFIG = {
+    title: 'Sector Performance',
+    width: '100%',
+    height: 600,
+    locale: 'en',
+    showSymbolLogo: true,
+    colorTheme: 'dark',
+    isTransparent: true,
+    symbolsGroups: [
+        {
+            name: 'Sectors',
+            symbols: [
+                { name: 'AMEX:XLK', displayName: 'Technology' },
+                { name: 'AMEX:XLF', displayName: 'Financials' },
+                { name: 'AMEX:XLV', displayName: 'Healthcare' },
+                { name: 'AMEX:XLY', displayName: 'Consumer Discretionary' },
+                { name: 'AMEX:XLP', displayName: 'Consumer Staples' },
+                { name: 'AMEX:XLE', displayName: 'Energy' },
+                { name: 'AMEX:XLU', displayName: 'Utilities' },
+                { name: 'AMEX:XLI', displayName: 'Industrials' },
+                { name: 'AMEX:XLB', displayName: 'Materials' },
+                { name: 'AMEX:XLRE', displayName: 'Real Estate' },
+                { name: 'AMEX:XLC', displayName: 'Communication' },
+            ],
+        },
+    ],
+};
+
 export const SYMBOL_INFO_WIDGET_CONFIG = (symbol: string) => ({
     symbol: (symbol ?? '').toString().toUpperCase(),
     colorTheme: 'dark',

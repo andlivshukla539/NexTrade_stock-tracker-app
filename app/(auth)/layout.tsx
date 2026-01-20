@@ -35,8 +35,8 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
                 {/* Testimonial */}
                 <div className="relative z-20 mt-auto mb-16 max-w-lg px-12 self-center">
                     <blockquote className="text-gray-200 text-lg leading-relaxed font-light">
-                        "NexTrade’s alerts feel like having a pro trader on my side —
-                        I never miss a good entry anymore."
+                        &quot;NexTrade’s alerts feel like having a pro trader on my side —
+                        I never miss a good entry anymore.&quot;
                     </blockquote>
 
                     <div className="mt-6 flex items-center justify-between">

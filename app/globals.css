@@ -74,31 +74,21 @@
     --ring: oklch(0.704 0.04 256.788);
 }
 
-/* ================= DARK MODE (AWWWARDS EDITION) ================= */
+/* ================= DARK MODE (FIXED) ================= */
 
 .dark {
-    /* 🔥 DEEP BLACK BACKGROUND SYSTEM */
-    --background: #050505;
-    --foreground: #e8e8e8;
+    /* 🔥 BACKGROUND SYSTEM */
+    --background: oklch(0 0 0);
+    --foreground: oklch(0.984 0.003 247.858);
 
-    /* 🎨 NEON ACCENTS */
-    --neon-green: #2AFF9D;
-    --neon-yellow: #FACC15;
-    --neon-blue: #38BDF8;
+    /* Cards = TRUE BLACK for solid UI */
+    --card: oklch(0 0 0);
+    --card-foreground: oklch(0.984 0.003 247.858);
 
-    /* Cards = Deep Black with Glassmorphism */
-    --card: #050505;
-    --card-foreground: #e8e8e8;
-
-    /* Glassmorphic Surface (use with rgba) */
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.08);
-
-    /* ✅ Popovers = Deep Black */
-    --popover: #050505;
-    --popover-foreground: #e8e8e8;
+    /* ✅ Popovers = TRUE BLACK (No Transparency/Blur) */
+    --popover: oklch(0 0 0);
+    --popover-foreground: oklch(0.984 0.003 247.858);
     --popover-opacity: 1;
-
     --primary: oklch(0.929 0.013 255.508);
     --primary-foreground: oklch(0.208 0.042 265.755);
 
@@ -149,24 +139,3 @@
 
 /* Your utility classes remain exactly as-is */
 /* No need to touch them — popover fix is GLOBAL */
-
-/* ================= AWWWARDS UTILITIES ================= */
-
-.glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(14px);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-}
-
-.neon-accent-green {
-    color: var(--neon-green);
-}
-
-.neon-accent-yellow {
-    color: var(--neon-yellow);
-}
-
-.neon-accent-blue {
-    color: var(--neon-blue);
-}
