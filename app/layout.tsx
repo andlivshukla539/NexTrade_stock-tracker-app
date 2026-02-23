@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { CommandMenu } from "@/components/ui/CommandMenu";
 import { WebSocketProvider } from "@/components/realtime/LiveTicker";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
 const syne = Syne({ subsets: ["latin"], variable: "--font-syne", display: "swap" });
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     {children}
                     <CommandMenu />
                     <Toaster />
+                    <SpeedInsights />
                 </WebSocketProvider>
             </body>
         </html>
