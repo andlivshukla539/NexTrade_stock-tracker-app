@@ -11,7 +11,7 @@ const TransactionSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ["buy", "sell"],
+        enum: ["buy", "sell", "deposit"],
         required: true,
     },
     quantity: {
