@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/mongoose";
-import Transaction from "@/database/models/transaction.model";
+import Transaction from "@/database/transaction.model";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 

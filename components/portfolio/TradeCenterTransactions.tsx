@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import "./trade-center.css";
+import "@/app/(root)/portfolio/trade-center.css";
 
 interface Transaction {
     _id: string;

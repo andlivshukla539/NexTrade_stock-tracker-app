@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { executePaperTrade } from "@/lib/actions/trading.actions";
 import { getQuote } from "@/lib/actions/finnhub.actions";
-import "./trade-center.css";
+import "@/app/(root)/portfolio/trade-center.css";
 
 // Assuming we trigger a refetch or state update elsewhere
 interface TradeCardProps {

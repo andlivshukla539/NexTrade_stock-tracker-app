@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import "./trade-center.css";
+import "@/app/(root)/portfolio/trade-center.css";
 
 // Assuming same shape as existing HoldingsTable component props
 interface Holding {

@@ -1,15 +1,14 @@
 import React from "react";
+import { env } from "@/lib/env";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { connectToDatabase } from "@/database/mongoose";
 import Balance from "@/database/balance.model";
 import Portfolio from "@/database/models/portfolio.model";
-import { env } from "@/lib/env";
-
 import { TradeCenterExecute } from "@/components/portfolio/TradeCenterExecute";
 import { TradeCenterHoldings } from "@/components/portfolio/TradeCenterHoldings";
 import { TradeCenterTransactions } from "@/components/portfolio/TradeCenterTransactions";
-import "@/components/portfolio/trade-center.css";
+import "./trade-center.css";
 
 async function getPortfolioData(userId: string) {
     await connectToDatabase();
