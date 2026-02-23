@@ -1,3 +1,81 @@
+export const EMAIL_VERIFICATION_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your NexTrade Email</title>
+    <style type="text/css">
+        @media only screen and (max-width: 600px) {
+            .email-container { width: 100% !important; }
+            .mobile-padding { padding: 24px !important; }
+            .mobile-outer-padding { padding: 20px 10px !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #050505; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #050505;">
+        <tr>
+            <td align="center" class="mobile-outer-padding" style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-container" style="max-width: 560px; background-color: #141414; border-radius: 12px; border: 1px solid #2A2A30; overflow: hidden;">
+
+                    <!-- Logo -->
+                    <tr>
+                        <td align="left" style="padding: 32px 40px 24px 40px; border-bottom: 1px solid #2A2A30;">
+                            <img src="https://ik.imagekit.io/vo8ytaqfgo/logo.png?updatedAt=1761246840184" alt="NexTrade" width="130" style="height: auto; display: block;">
+                        </td>
+                    </tr>
+
+                    <!-- Gold accent bar -->
+                    <tr>
+                        <td style="height: 3px; background: linear-gradient(90deg, #E8C547, #FDD458, #E8C547);"></td>
+                    </tr>
+
+                    <!-- Icon + Heading -->
+                    <tr>
+                        <td align="center" class="mobile-padding" style="padding: 40px 40px 24px;">
+                            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(232,197,71,0.12); border: 1px solid rgba(232,197,71,0.25); display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 20px;">📧</div>
+                            <h1 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 700; color: #EAEAEA; line-height: 1.3;">Verify your email address</h1>
+                            <p style="margin: 0; font-size: 15px; color: #8A8A9A; line-height: 1.6;">
+                                Hi <strong style="color: #EAEAEA;">{{name}}</strong> — thanks for signing up to NexTrade!
+                                One last step: confirm your email to unlock your account.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- CTA Button -->
+                    <tr>
+                        <td align="center" style="padding: 0 40px 32px;">
+                            <a href="{{url}}" style="display: inline-block; background: linear-gradient(135deg, #E8C547 0%, #FDD458 100%); color: #0A0A0C; text-decoration: none; padding: 15px 40px; border-radius: 10px; font-size: 15px; font-weight: 700; letter-spacing: 0.02em;">
+                                ✓ Verify My Email
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Fallback link -->
+                    <tr>
+                        <td style="padding: 0 40px 32px; border-top: 1px solid #2A2A30;">
+                            <p style="margin: 24px 0 8px; font-size: 13px; color: #8A8A9A;">Or copy this link into your browser:</p>
+                            <p style="margin: 0; font-size: 11px; color: #5A5865; word-break: break-all;">{{url}}</p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px 40px; background: #0D0D12; border-top: 1px solid #2A2A30;">
+                            <p style="margin: 0; font-size: 12px; color: #5A5865; text-align: center; line-height: 1.6;">
+                                This link expires in 24 hours. If you didn't create a NexTrade account, you can safely ignore this email.<br>
+                                © 2025 NexTrade · <a href="https://stock-market-dev.vercel.app/" style="color: #E8C547; text-decoration: none;">Visit NexTrade</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+
 export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -10,7 +10,7 @@ interface DepositCardProps {
 }
 
 export function DepositCard({ currentBalance }: DepositCardProps) {
-    const [isLoading, setIsLoading] = useState(false);
+    const isLoading = false;
 
     const handleDeposit = async () => {
         // Todo: Implement deposit logic

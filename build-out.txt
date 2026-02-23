@@ -1,0 +1,56 @@
+
+> stocks_app@0.1.0 build
+> next build --turbopack
+
+   ▲ Next.js 15.5.7 (Turbopack)
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Finished writing to disk in 94ms
+ ✓ Compiled successfully in 6.6s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/21) ...
+   Generating static pages (5/21) 
+   Generating static pages (10/21) 
+   Generating static pages (15/21) 
+ ✓ Generating static pages (21/21)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                         Size  First Load JS
+┌ ƒ /                              58 kB         287 kB
+├ ○ /_not-found                      0 B         153 kB
+├ ƒ /alerts                      2.46 kB         231 kB
+├ ƒ /alerts/new                      0 B         229 kB
+├ ƒ /api/alerts                      0 B            0 B
+├ ƒ /api/alerts/[id]                 0 B            0 B
+├ ƒ /api/auth/[...all]               0 B            0 B
+├ ƒ /api/health                      0 B            0 B
+├ ƒ /api/inngest                     0 B            0 B
+├ ƒ /api/quotes                      0 B            0 B
+├ ƒ /api/trade                       0 B            0 B
+├ ƒ /calendar                    1.69 kB         230 kB
+├ ƒ /portfolio                    103 kB         332 kB
+├ ƒ /screener                    2.01 kB         231 kB
+├ ƒ /sign-in                     96.7 kB         259 kB
+├ ƒ /sign-up                     25.4 kB         209 kB
+├ ƒ /stocks                        749 B         229 kB
+├ ƒ /stocks/[symbols]            3.78 kB         232 kB
+├ ƒ /trade                       2.44 kB         249 kB
+├ ƒ /verify-email                16.2 kB         169 kB
+└ ƒ /watchlist                   8.33 kB         237 kB
++ First Load JS shared by all     169 kB
+  ├ chunks/20359bc8396e1a0e.js   59.2 kB
+  ├ chunks/b9b12e254f9d4005.js   12.6 kB
+  ├ chunks/bf74d008bfe60773.js   17.2 kB
+  ├ chunks/d66380871879f1a5.js   20.7 kB
+  ├ chunks/f2604432e3c3493d.css  16.2 kB
+  └ other shared chunks (total)  43.6 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

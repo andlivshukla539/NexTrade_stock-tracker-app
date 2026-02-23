@@ -7,17 +7,37 @@ import { cache } from 'react';
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 const NEXT_PUBLIC_FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
 
-async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T> {
+async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T | null> {
     const options: RequestInit & { next?: { revalidate?: number } } = revalidateSeconds
         ? { cache: 'force-cache', next: { revalidate: revalidateSeconds } }
         : { cache: 'no-store' };
 
-    const res = await fetch(url, options);
-    if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(`Fetch failed ${res.status}: ${text}`);
+    try {
+        // Add a 5s timeout to prevent entire layout from hanging if Finnhub is down
+        options.signal = AbortSignal.timeout(5000);
+        const res = await fetch(url, options);
+
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            if (res.status === 429) {
+                console.warn(`[Finnhub 429 Rate Limit] Retrying later for: ${url.split("?")[0]}`);
+                return null; // Graceful fallback
+            }
+            throw new Error(`Fetch failed ${res.status}: ${text}`);
+        }
+        return (await res.json()) as T;
+    } catch (error) {
+        if (error instanceof DOMException && error.name === 'TimeoutError') {
+            console.warn(`[Finnhub Timeout] 5s elapsed for: ${url.split("?")[0]}`);
+            return null; // Graceful fallback for timeouts
+        }
+        // Also catch Node.js native timeouts and connection resets
+        if (error instanceof Error && (error.message.includes('UND_ERR_CONNECT_TIMEOUT') || error.message.includes('fetch failed'))) {
+            console.warn(`[Finnhub Connection Error] ${error.message} for: ${url.split("?")[0]}`);
+            return null;
+        }
+        throw error;
     }
-    return (await res.json()) as T;
 }
 
 export { fetchJSON };
@@ -185,16 +205,21 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
     }
 });
 
-export async function getQuote(symbol: string): Promise<number | null> {
+export async function getQuote(symbol?: string): Promise<number | null> {
+    if (!symbol) return null;
     try {
         const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
-        if (!token) throw new Error('FINNHUB API key is not configured');
-
+        if (!token) {
+            console.error('FINNHUB API key is not configured for getQuote');
+            return null;
+        }
         const url = `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}&token=${token}`;
-        const data = await fetchJSON<{ c: number }>(url, 0); // 0 = no cache for real-time
+        // Revalidate every 15 seconds to keep it pseudo-live but cached
+        const data = await fetchJSON<{ c: number }>(url, 15);
+        if (!data) return null; // 429 rate limit or other fetchJSON error
         return data.c || null;
-    } catch (error) {
-        console.error(`Error fetching quote for ${symbol}:`, error);
+    } catch (e) {
+        console.error('Error fetching quote for', symbol, e);
         return null;
     }
 }

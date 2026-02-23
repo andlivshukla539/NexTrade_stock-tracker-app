@@ -1,10 +1,7 @@
 import Link from "next/link";
 
-export default async function NewAlertPage({ searchParams }: { searchParams?: Promise<{ symbol?: string }> }) {
-  // In Next.js app router, searchParams can be passed from the framework.
-  // We keep it optional here to avoid strict typing issues.
-  const sp = (await searchParams) ?? {};
-  const symbol = (sp.symbol || "").toString().toUpperCase();
+export default function NewAlertPage({ searchParams }: { searchParams?: { symbol?: string } }) {
+  const symbol = (searchParams?.symbol || "").toString().toUpperCase();
 
   return (
     <div className="container py-8">

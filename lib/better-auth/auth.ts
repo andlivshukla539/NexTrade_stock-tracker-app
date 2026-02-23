@@ -3,6 +3,8 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { connectToDatabase } from "@/database/mongoose";
 import { nextCookies } from "better-auth/next-js";
 import type { Db } from "mongodb";
+import { transporter } from "@/lib/nodemailer";
+import { EMAIL_VERIFICATION_TEMPLATE } from "@/lib/nodemailer/templates";
 
 let authInstance: ReturnType<typeof betterAuth> | null = null;
 
@@ -21,10 +23,26 @@ export const getAuth = async () => {
         emailAndPassword: {
             enabled: true,
             disableSignUp: false,
-            requireEmailVerification: false,
+            requireEmailVerification: true,
             minPasswordLength: 8,
             maxPasswordLength: 128,
-            autoSignIn: true,
+            autoSignIn: false,
+        },
+        emailVerification: {
+            sendOnSignUp: true,
+            autoSignInAfterVerification: true,
+            sendVerificationEmail: async ({ user, url }) => {
+                const name = user.name || user.email.split('@')[0];
+                const html = EMAIL_VERIFICATION_TEMPLATE
+                    .replace(/{{name}}/g, name)
+                    .replace(/{{url}}/g, url);
+                await transporter.sendMail({
+                    from: `"NexTrade" <${process.env.NODEMAILER_EMAIL}>`,
+                    to: user.email,
+                    subject: '📧 Verify your NexTrade email address',
+                    html,
+                });
+            },
         },
         socialProviders: {
             google: {

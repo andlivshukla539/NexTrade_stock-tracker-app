@@ -1,0 +1,44 @@
+Command failed: npx next lint
+`next lint` is deprecated and will be removed in Next.js 16.
+For new projects, use create-next-app to choose your preferred linter.
+For existing projects, migrate to the ESLint CLI:
+npx @next/codemod@canary next-lint-to-eslint-cli .
+
+
+./components/charts/AdvancedChart.tsx
+2:36  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/dashboard/WatchlistDashboard.tsx
+4:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
+126:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+267:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+280:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+289:74  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/onboarding/Tour.tsx
+53:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/portfolio/DepositCard.tsx
+13:23  Warning: 'setIsLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/portfolio/HoldingsTable.tsx
+3:17  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/portfolio/TradeModal.tsx
+40:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/realtime/LiveTicker.tsx
+4:10  Warning: 'env' is defined but never used.  @typescript-eslint/no-unused-vars
+48:51  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+68:8  Warning: React Hook useEffect has a missing dependency: 'activeSymbols'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/actions/alert.actions.ts
+30:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/actions/trading.actions.ts
+49:17  Error: 'holding' is never reassigned. Use 'const' instead.  prefer-const
+63:17  Error: 'holding' is never reassigned. Use 'const' instead.  prefer-const
+92:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+129:20  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

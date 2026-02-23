@@ -80,10 +80,10 @@ export default async function NewsSentiment({ symbol }: { symbol?: string }) {
       <div className="mb-4">
         <h4 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Analyzed Stories</h4>
         <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-          {articles.slice(0, 5).map((art) => {
+          {articles.slice(0, 5).map((art, idx) => {
             const dt = art.datetime ? new Date(art.datetime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
             return (
-              <a key={art.id} href={art.url} target="_blank" rel="noopener noreferrer" className="block group p-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/80 transition-all border border-transparent hover:border-gray-700">
+              <a key={`${art.id}-${idx}`} href={art.url} target="_blank" rel="noopener noreferrer" className="block group p-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/80 transition-all border border-transparent hover:border-gray-700">
                 <div className="flex justify-between items-start gap-2 mb-1">
                   <h5 className="text-sm font-medium text-gray-200 group-hover:text-yellow-400 leading-snug line-clamp-2">{art.headline}</h5>
                   <span className="text-xs text-gray-500 whitespace-nowrap">{dt}</span>

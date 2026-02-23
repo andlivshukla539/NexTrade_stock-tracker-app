@@ -1,76 +1,60 @@
-import TradingViewWidget from "@/components/TradingViewWidget";
-import {
-    HEATMAP_WIDGET_CONFIG,
-    MARKET_DATA_WIDGET_CONFIG,
-    MARKET_OVERVIEW_WIDGET_CONFIG,
-    // TOP_STORIES_WIDGET_CONFIG, // Removed
-    TOP_GAINERS_WIDGET_CONFIG,
-    SECTOR_PERFORMANCE_WIDGET_CONFIG
-} from "@/lib/constants";
-import NewsSentiment from "@/components/NewsSentiment";
-// import AlertsList from "@/components/AlertsList"; // Removed
-// import StockNews from "@/components/StockNews"; // Removed
+import { Suspense } from "react";
+import IndexCards from "@/components/dashboard/IndexCards";
+import MarketChartAndMovers from "@/components/dashboard/MarketChartAndMovers";
+import StockHeatmap from "@/components/dashboard/StockHeatmap";
+import SectorPerformancePanel from "@/components/dashboard/SectorPerformancePanel";
+import LiveMarketNewsPanel from "@/components/dashboard/LiveMarketNewsPanel";
+import { getNews } from "@/lib/actions/finnhub.actions";
 
-const Home = () => {
-    const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
 
-    return (
-        <div className="flex flex-col min-h-screen home-wrapper gap-8 pb-10">
-            <section className="grid w-full gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 home-section">
-                <div className="md:col-span-1 xl:col-span-1">
-                    <TradingViewWidget
-                        title="Market Overview"
-                        scriptUrl={`${scriptUrl}market-overview.js`}
-                        config={MARKET_OVERVIEW_WIDGET_CONFIG}
-                        className="custom-chart"
-                        height={600}
-                    />
-                </div>
-                <div className="md:col-span-1 xl:col-span-2">
-                    <TradingViewWidget
-                        title="Stock Heatmap"
-                        scriptUrl={`${scriptUrl}stock-heatmap.js`}
-                        config={HEATMAP_WIDGET_CONFIG}
-                        height={600}
-                    />
-                </div>
-            </section>
-
-            <section className="grid w-full gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 home-section">
-                <div className="h-full md:col-span-1 xl:col-span-1">
-                    <TradingViewWidget
-                        title="Top Gainers"
-                        scriptUrl={`${scriptUrl}hotlists.js`}
-                        config={TOP_GAINERS_WIDGET_CONFIG}
-                        height={600}
-                    />
-                </div>
-                <div className="h-full md:col-span-1 xl:col-span-2">
-                    <TradingViewWidget
-                        title="Market Quotes"
-                        scriptUrl={`${scriptUrl}market-quotes.js`}
-                        config={MARKET_DATA_WIDGET_CONFIG}
-                        height={600}
-                    />
-                </div>
-            </section>
-
-            {/* Sector & Sentiment Section */}
-            <section className="grid w-full gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 home-section">
-                <div className="md:col-span-1 xl:col-span-2">
-                    <TradingViewWidget
-                        title="Sector Performance"
-                        scriptUrl={`${scriptUrl}market-quotes.js`}
-                        config={SECTOR_PERFORMANCE_WIDGET_CONFIG}
-                        height={600}
-                    />
-                </div>
-                <div className="md:col-span-1 xl:col-span-1 h-full">
-                    <NewsSentiment />
-                </div>
-            </section>
-        </div>
-    )
+// ── Async subcomponent: fetches live news independently so it doesn't block
+// the fast-loading static sections (IndexCards, Chart, Heatmap)
+async function LiveNews() {
+    let news: MarketNewsArticle[] = [];
+    try {
+        news = await getNews(["NVDA", "AAPL", "TSLA", "MSFT", "META", "AMZN"]);
+    } catch {
+        news = [];
+    }
+    return <LiveMarketNewsPanel news={news} />;
 }
 
-export default Home;
+// ── News fallback skeleton while live news loads
+function NewsSkeleton() {
+    return (
+        <div style={{ background: "#0F0F12", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "14px 16px" }}>
+            <div style={{ height: 12, width: 120, borderRadius: 6, background: "#1A1A1E", marginBottom: 12 }} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1 }}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} style={{ padding: 12 }}>
+                        <div style={{ height: 11, background: "#1A1A1E", borderRadius: 5, marginBottom: 6 }} />
+                        <div style={{ height: 9, background: "#131316", borderRadius: 5, width: "70%" }} />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default async function Home() {
+    return (
+        <>
+            {/* Row 1: Fast — static data, no API wait */}
+            <IndexCards />
+
+            {/* Row 2: Fast — static data */}
+            <MarketChartAndMovers />
+
+            {/* Row 3: Fast — static data */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 12 }}>
+                <StockHeatmap />
+                <SectorPerformancePanel />
+            </div>
+
+            {/* Row 4: Streamed separately via Suspense — doesn't block rows 1-3 */}
+            <Suspense fallback={<NewsSkeleton />}>
+                <LiveNews />
+            </Suspense>
+        </>
+    );
+}

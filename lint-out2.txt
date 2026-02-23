@@ -1,0 +1,23 @@
+
+./app/(auth)/sign-up/page.tsx
+215:11  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/charts/AdvancedChart.tsx
+2:36  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/dashboard/WatchlistDashboard.tsx
+4:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/portfolio/DepositCard.tsx
+13:23  Warning: 'setIsLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/portfolio/HoldingsTable.tsx
+3:17  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/portfolio/TradeModal.tsx
+40:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/realtime/LiveTicker.tsx
+4:10  Warning: 'env' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

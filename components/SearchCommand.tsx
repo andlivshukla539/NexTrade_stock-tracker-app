@@ -62,7 +62,7 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
                     {label}
                 </span>
             ) : (
-                <Button onClick={() => setOpen(true)} className="search-btn">
+                <Button onClick={() => setOpen(true)} className="search-btn" id="cmd-palette-btn">
                     {label}
                 </Button>
             )}
