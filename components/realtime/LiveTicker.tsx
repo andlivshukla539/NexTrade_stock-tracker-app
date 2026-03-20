@@ -1,14 +1,32 @@
 "use client";
 
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { WebSocketContext, type WebSocketContextType, type TickerData } from './websocket-context';
+import React, { useCallback, useContext, useEffect, useRef, useSyncExternalStore } from 'react';
+import { WebSocketContext, type TickerData, type Listener, type WebSocketStore } from './websocket-context';
 
 export { WebSocketContext } from './websocket-context';
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
-    // useRef for direct socket access — no setState means no re-render on subscribe/unsubscribe
     const socketRef = useRef<WebSocket | null>(null);
-    const [latestPrices, setLatestPrices] = useState<Record<string, TickerData>>({});
+
+    // Create a stable store instance that doesn't trigger React renders on every price tick
+    const storeRef = useRef<WebSocketStore | null>(null);
+    if (!storeRef.current) {
+        let prices: Record<string, TickerData> = {};
+        const listeners = new Set<Listener>();
+
+        storeRef.current = {
+            getPrices: () => prices,
+            subscribeToPrices: (listener: Listener) => {
+                listeners.add(listener);
+                return () => listeners.delete(listener);
+            },
+            // Private method to trigger updates
+            _updatePrices: (newPrices: Record<string, TickerData>) => {
+                prices = { ...prices, ...newPrices };
+                listeners.forEach(l => l(prices));
+            }
+        } as WebSocketStore & { _updatePrices: (p: Record<string, TickerData>) => void };
+    }
 
     useEffect(() => {
         const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
@@ -25,13 +43,16 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         ws.onmessage = (event) => {
             const response = JSON.parse(event.data);
             if (response.type === 'trade' && response.data) {
-                setLatestPrices(prev => {
-                    const newPrices = { ...prev };
-                    response.data.forEach((trade: { s: string, p: number, t: number }) => {
-                        newPrices[trade.s] = { price: trade.p, symbol: trade.s, timestamp: trade.t };
-                    });
-                    return newPrices;
+                const updates: Record<string, TickerData> = {};
+                response.data.forEach((trade: { s: string, p: number, t: number }) => {
+                    updates[trade.s] = { price: trade.p, symbol: trade.s, timestamp: trade.t };
                 });
+
+                // Update store instead of React state
+                const store = storeRef.current as WebSocketStore & { _updatePrices: (p: Record<string, TickerData>) => void };
+                if (store) {
+                    store._updatePrices(updates);
+                }
             }
         };
 
@@ -44,8 +65,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    // useCallback with [] — stable refs that never change identity.
-    // Read socket via ref so no setSocket call is needed (avoids re-renders).
     const subscribe = useCallback((symbol: string) => {
         const ws = socketRef.current;
         if (ws?.readyState === WebSocket.OPEN) {
@@ -60,8 +79,14 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    const contextValue = React.useMemo(() => ({
+        subscribe,
+        unsubscribe,
+        store: storeRef.current!
+    }), [subscribe, unsubscribe]);
+
     return (
-        <WebSocketContext.Provider value={{ subscribe, unsubscribe, latestPrices }}>
+        <WebSocketContext.Provider value={contextValue}>
             {children}
         </WebSocketContext.Provider>
     );
@@ -70,12 +95,23 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 export function useLiveTicker(symbol: string) {
     const context = useContext(WebSocketContext);
 
-    useEffect(() => {
-        if (!context) return;
-        context.subscribe(symbol);
-        return () => { context.unsubscribe(symbol); };
-    }, [symbol, context]);
+    const subscribe = context?.subscribe;
+    const unsubscribe = context?.unsubscribe;
+    const store = context?.store;
 
-    if (!context) return null;
-    return context.latestPrices[symbol]?.price || null;
+    useEffect(() => {
+        if (!subscribe || !unsubscribe) return;
+        subscribe(symbol);
+        return () => { unsubscribe(symbol); };
+    }, [symbol, subscribe, unsubscribe]);
+
+    // Fast subscription to specific ticker updates without global re-renders
+    const price = useSyncExternalStore(
+        store?.subscribeToPrices || (() => () => { }),
+        () => store?.getPrices()[symbol]?.price || null,
+        () => null
+    );
+
+    return price;
 }
+

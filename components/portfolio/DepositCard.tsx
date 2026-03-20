@@ -48,6 +48,20 @@ export function DepositCard({ currentBalance }: DepositCardProps) {
             const order = await orderResponse.json();
 
             // 2. Open Razorpay Checkout modal
+            interface RazorpaySuccessResponse {
+                razorpay_payment_id: string;
+                razorpay_order_id: string;
+                razorpay_signature: string;
+            }
+
+            interface RazorpayErrorResponse {
+                error: {
+                    description: string;
+                };
+            }
+
+            // ... inside component ...
+
             const options = {
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
                 amount: order.amount, // amount in paise
@@ -55,7 +69,7 @@ export function DepositCard({ currentBalance }: DepositCardProps) {
                 name: "NexTrade",
                 description: "Add funds to your simulated brokerage account.",
                 order_id: order.orderId,
-                handler: async function (response: any) {
+                handler: async function (response: RazorpaySuccessResponse) {
                     // 3. Verify Payment on Success
                     try {
                         const verifyRes = await fetch("/api/razorpay/verify", {
@@ -84,17 +98,19 @@ export function DepositCard({ currentBalance }: DepositCardProps) {
                 },
             };
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const rzp = new (window as any).Razorpay(options);
 
-            rzp.on("payment.failed", function (response: any) {
+            rzp.on("payment.failed", function (response: RazorpayErrorResponse) {
                 alert(`Payment Failed: ${response.error.description}`);
             });
 
             rzp.open();
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            alert(`Error processing payment: ${error.message}`);
+            const msg = error instanceof Error ? error.message : "Unknown error";
+            alert(`Error processing payment: ${msg}`);
         } finally {
             setIsLoading(false);
         }

@@ -225,15 +225,16 @@ export default function WatchlistDashboard({
     const wsSubscribe = wsContext?.subscribe;
     const wsUnsubscribe = wsContext?.unsubscribe;
 
+    const stockSymbols = list.stocks.map((s: Stock) => s.sym).join(",");
+
     useEffect(() => {
-        if (!wsSubscribe) return;
-        const stocks = list.stocks;
-        stocks.forEach((s: Stock) => wsSubscribe(s.sym));
+        if (!wsSubscribe || !wsUnsubscribe) return;
+        const symbols = stockSymbols.split(",").filter(Boolean);
+        symbols.forEach(sym => wsSubscribe(sym));
         return () => {
-            stocks.forEach((s: Stock) => wsUnsubscribe?.(s.sym));
+            symbols.forEach(sym => wsUnsubscribe(sym));
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [listKey, wsSubscribe, wsUnsubscribe]);
+    }, [stockSymbols, wsSubscribe, wsUnsubscribe]);
 
 
     useEffect(() => { fetchPrices(); const t = setInterval(fetchPrices, 30000); return () => clearInterval(t); }, [fetchPrices]);
@@ -286,12 +287,23 @@ export default function WatchlistDashboard({
         }
     }
 
+    // Subscribe to store updates to trigger re-renders exactly when prices change,
+    // though for a high-frequency dashboard, limiting updates or doing them per row is better.
+    // For now, we subscribe at the dashboard level to merged price map.
+    const [livePrices, setLivePrices] = useState<Record<string, { price: number }>>({});
+    useEffect(() => {
+        if (!wsContext?.store) return;
+        return wsContext.store.subscribeToPrices((newPrices) => {
+            setLivePrices(newPrices);
+        });
+    }, [wsContext?.store]);
+
     // Merge WebSocket live prices over polled API prices
     const mergedPrices = {
         ...prices,
-        ...(wsContext ? Object.fromEntries(
-            Object.entries(wsContext.latestPrices).map(([k, v]: [string, { price: number }]) => [k, v.price])
-        ) : {})
+        ...(Object.fromEntries(
+            Object.entries(livePrices).map(([k, v]) => [k, v.price])
+        ))
     };
 
     // Compute KPIs from live prices where available, falling back to static data

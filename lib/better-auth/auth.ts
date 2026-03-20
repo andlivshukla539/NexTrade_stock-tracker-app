@@ -23,26 +23,10 @@ export const getAuth = async () => {
         emailAndPassword: {
             enabled: true,
             disableSignUp: false,
-            requireEmailVerification: true,
+            requireEmailVerification: false,
             minPasswordLength: 8,
             maxPasswordLength: 128,
-            autoSignIn: false,
-        },
-        emailVerification: {
-            sendOnSignUp: true,
-            autoSignInAfterVerification: true,
-            sendVerificationEmail: async ({ user, url }) => {
-                const name = user.name || user.email.split('@')[0];
-                const html = EMAIL_VERIFICATION_TEMPLATE
-                    .replace(/{{name}}/g, name)
-                    .replace(/{{url}}/g, url);
-                await transporter.sendMail({
-                    from: `"NexTrade" <${process.env.NODEMAILER_EMAIL}>`,
-                    to: user.email,
-                    subject: '📧 Verify your NexTrade email address',
-                    html,
-                });
-            },
+            autoSignIn: true,
         },
         socialProviders: {
             google: {

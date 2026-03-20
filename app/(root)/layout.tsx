@@ -8,7 +8,6 @@ import { searchStocks } from "@/lib/actions/finnhub.actions";
 import { getPortfolioSummary } from "@/lib/actions/portfolio.actions";
 import type { ReactNode } from "react";
 
-import Tour from "@/components/onboarding/Tour";
 import { WebSocketProvider } from "@/components/realtime/LiveTicker";
 
 export default async function Layout({ children }: { children: ReactNode }) {
@@ -35,7 +34,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
                 fontFamily: "var(--font-syne, 'DM Sans', system-ui, sans-serif)",
                 fontSize: 13,
             }}>
-                <Tour />
                 {/* Sticky top bar */}
                 <TopNav user={user} initialStocks={initialStocks} />
 
