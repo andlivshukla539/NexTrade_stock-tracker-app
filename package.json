@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "nextrade",
   "version": "0.1.0",
   "private": true,
@@ -11,7 +11,8 @@
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "type-check": "tsc --noEmit",
     "health:db": "node -e \"fetch('http://localhost:3000/api/health/db').then(r=>r.text()).then(console.log).catch(e=>{console.error(e.message);process.exit(1);})\"",
-    "test:db": "node scripts/test-db.mjs",`n    "postinstall": "prisma generate"
+    "test:db": "node scripts/test-db.mjs",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.54",
