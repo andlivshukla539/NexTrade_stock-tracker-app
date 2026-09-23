@@ -20,7 +20,7 @@ async function getPortfolioData(userId: string) {
 
     // Fetch current prices in parallel
     const holdings = await Promise.all(
-        holdingsDocs.map(async (doc) => {
+        holdingsDocs.map(async (doc: { symbol: string; avgPrice: number; quantity: number }) => {
             let currentPrice = doc.avgPrice;
             try {
                 const price = await getQuote(doc.symbol);
