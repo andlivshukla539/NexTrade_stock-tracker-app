@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getQuote } from "@/lib/actions/finnhub.actions";
 
 const SYMBOLS = ["SPY", "NVDA", "AAPL", "TSLA", "MSFT", "META", "AMZN", "JPM", "GOOG", "AMD", "BTC-USD", "VIX"];
 
-// Cache quotes for 15 seconds to avoid hammering Finnhub on every client poll
-export const revalidate = 15;
+export const dynamic = "force-dynamic"; // Ensure this route is dynamic since it uses searchParams
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -29,6 +28,6 @@ export async function GET(req: Request) {
         });
     } catch (err) {
         console.error("Quote API error:", err);
-        return NextResponse.json({ error: "Failed to fetch quotes" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to fetch quotes", details: String(err) }, { status: 500 });
     }
 }
