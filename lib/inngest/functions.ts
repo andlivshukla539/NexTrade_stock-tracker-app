@@ -1,12 +1,11 @@
-import { inngest } from "@/lib/inngest/client";
+﻿import { inngest } from "@/lib/inngest/client";
 import { NEWS_SUMMARY_EMAIL_PROMPT, PERSONALIZED_WELCOME_EMAIL_PROMPT } from "@/lib/inngest/prompts";
 import { sendNewsSummaryEmail, sendWelcomeEmail } from "@/lib/nodemailer";
 import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews } from "@/lib/actions/finnhub.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
-import { connectToDatabase } from "@/database/mongoose";
-import Alert from "@/database/alert.model";
+import { prisma } from "@/lib/prisma";
 
 export const sendSignUpEmail = inngest.createFunction(
     { id: 'sign-up-email' },
@@ -138,11 +137,8 @@ export const checkPriceAlerts = inngest.createFunction(
     { id: 'check-price-alerts' },
     { cron: '*/10 * * * *' }, // Run every 10 minutes
     async ({ step }) => {
-        await connectToDatabase();
-
-        // 1. Fetch all active alerts
         const alerts = await step.run('fetch-alerts', async () => {
-            return await Alert.find({ triggered: false });
+            return await prisma.alert.findMany({ where: { status: 'active' } });
         });
 
         if (!alerts || alerts.length === 0) {
@@ -166,10 +162,11 @@ export const checkPriceAlerts = inngest.createFunction(
                     // const quote = await getQuote(alert.symbol);
                     // const currentPrice = quote.c;
 
-                    // MOCK IMPLEMENTATION:
-                    // We'll simulate a current price that is +/- 5% of target
-                    const variation = (Math.random() * 0.1) - 0.05; // -5% to +5%
-                    const currentPrice = alert.targetPrice * (1 + variation);
+                    // REAL IMPLEMENTATION:
+                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${alert.symbol}&token=${process.env.FINNHUB_API_KEY}`);
+                    if (!res.ok) throw new Error(`Finnhub error for ${alert.symbol}`);
+                    const quote = await res.json();
+                    const currentPrice = quote.c;
 
                     let shouldTrigger = false;
                     if (alert.condition === 'ABOVE' && currentPrice >= alert.targetPrice) {
@@ -180,7 +177,7 @@ export const checkPriceAlerts = inngest.createFunction(
 
                     if (shouldTrigger) {
                         triggered.push({
-                            alertId: alert._id,
+                            alertId: alert.id,
                             userId: alert.userId,
                             symbol: alert.symbol,
                             targetPrice: alert.targetPrice,
@@ -223,7 +220,10 @@ export const checkPriceAlerts = inngest.createFunction(
             // Mark as triggered
             await step.run('update-alerts', async () => {
                 for (const item of triggeredAlerts) {
-                    await Alert.findByIdAndUpdate(item.alertId, { triggered: true });
+                    await prisma.alert.update({
+                        where: { id: item.alertId },
+                        data: { status: 'triggered' }
+                    });
                 }
             });
         }

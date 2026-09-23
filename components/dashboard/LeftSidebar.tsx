@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +8,7 @@ const NAV = [
     { href: "/watchlist", label: "Watchlist", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg> },
     { href: "/stocks", label: "Markets", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg> },
     { href: "/trade", label: "Trade", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg> },
-    { href: "/portfolio", label: "History", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> },
+    { href: "/portfolio", label: "Portfolio", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> },
     { href: "/alerts", label: "News Feed", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" /></svg> },
 ];
 
@@ -62,12 +62,12 @@ function NavItem({ href, label, icon, badge, active }: { href: string; label: st
 export default function LeftSidebar({ portfolio }: { portfolio?: PortfolioSummary }) {
     const pathname = usePathname();
 
-    // Format real portfolio total — cost basis (invested amount)
+    // Format real portfolio total â€” cost basis (invested amount)
     const totalDisplay = portfolio && portfolio.totalInvested > 0
         ? `$${portfolio.totalInvested.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
         : portfolio && portfolio.holdingCount === 0
             ? "$0"
-            : "—";
+            : "â€”";
 
     // Show watchlist count as badge if > 0
     const watchlistBadge = portfolio && portfolio.watchlistCount > 0
@@ -95,7 +95,7 @@ export default function LeftSidebar({ portfolio }: { portfolio?: PortfolioSummar
                 })}
             </div>
 
-            {/* Portfolio — real values (cost basis from DB) */}
+            {/* Portfolio â€” real values (cost basis from DB) */}
             <div style={{ ...S.section, padding: "10px 14px 4px" }}>
                 <div style={{ ...S.sectionLabel, padding: "0 0 10px" }}>Portfolio</div>
                 <div style={{ fontSize: 10, color: "#3D3B45", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Invested Cost Basis</div>

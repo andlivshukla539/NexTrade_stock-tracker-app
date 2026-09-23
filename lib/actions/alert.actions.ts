@@ -1,7 +1,6 @@
 'use server';
 
-import { connectToDatabase } from '@/database/mongoose';
-import { Alert } from '@/database/models/alert.model';
+import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/better-auth/auth';
 import { headers } from 'next/headers';
 
@@ -15,45 +14,42 @@ export async function createAlert(data: {
     const userId = session?.user?.id as string | undefined;
     if (!userId) throw new Error('Not authenticated');
 
-    await connectToDatabase();
-
-    const newAlert = new Alert({
-        userId,
-        symbol: data.symbol.toUpperCase().trim(),
-        condition: data.condition,
-        targetPrice: data.targetPrice,
-        frequency: data.frequency,
-        status: 'active',
+    const newAlert = await prisma.alert.create({
+        data: {
+            userId,
+            symbol: data.symbol.toUpperCase().trim(),
+            condition: data.condition,
+            targetPrice: data.targetPrice,
+            frequency: data.frequency,
+            status: 'active',
+        }
     });
 
-    await newAlert.save();
-    return { ok: true, alertId: String(newAlert._id) } as const;
+    return { ok: true, alertId: newAlert.id } as const;
 }
 
 export async function getAlertsByEmail(email: string) {
     if (!email) return [];
     try {
-        const mongoose = await connectToDatabase();
-        const db = mongoose.connection.db;
-        if (!db) throw new Error('MongoDB connection not found');
-
-        const user = await db.collection('user').findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
         if (!user) return [];
 
-        const userId = (user.id as string) || String(user._id || '');
-        if (!userId) return [];
-
-        const items = await Alert.find({ userId }).sort({ createdAt: -1 }).lean();
+        const items = await prisma.alert.findMany({
+            where: { userId: user.id },
+            orderBy: { createdAt: 'desc' }
+        });
 
         return items.map(i => ({
-            id: String(i._id),
-            symbol: String(i.symbol),
-            condition: String(i.condition),
-            targetPrice: Number(i.targetPrice),
-            status: String(i.status) as "active" | "triggered",
-            frequency: String(i.frequency),
-            createdAt: new Date(i.createdAt),
-            triggeredAt: i.triggeredAt ? new Date(i.triggeredAt) : undefined
+            id: i.id,
+            symbol: i.symbol,
+            condition: i.condition,
+            targetPrice: i.targetPrice,
+            status: i.status as "active" | "triggered",
+            frequency: i.frequency,
+            createdAt: i.createdAt,
+            triggeredAt: i.triggeredAt || undefined
         }));
     } catch (err) {
         console.error('getAlertsByEmail error:', err);
@@ -66,7 +62,8 @@ export async function removeAlert(alertId: string) {
     const userId = session?.user?.id as string | undefined;
     if (!userId) throw new Error('Not authenticated');
 
-    await connectToDatabase();
-    await Alert.deleteOne({ _id: alertId, userId });
+    await prisma.alert.deleteMany({
+        where: { id: alertId, userId }
+    });
     return { ok: true } as const;
 }

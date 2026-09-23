@@ -1,25 +1,8 @@
-import React from "react";
+﻿import React from "react";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
-import { connectToDatabase } from "@/database/mongoose";
-import Balance from "@/database/balance.model";
-import Portfolio from "@/database/models/portfolio.model";
-import Transaction from "@/database/transaction.model";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+import { prisma } from "@/lib/prisma";
 import TradePageClient from "./TradePageClient";
-import { getQuote } from "@/lib/actions/finnhub.actions";
-// Removed unused Motion import
-// Since this is a server component, we'll use a client wrapper for animations or just simple CSS classes for now to keep it simple as per plan, 
-// but to use Framer Motion we need a client component wrapper. 
-// Let's create a client wrapper for the content.
 
 interface Holding {
     symbol: string;
@@ -28,179 +11,182 @@ interface Holding {
     currentPrice: number;
 }
 
-interface TransactionType {
-    _id: string;
-    type: string;
-    symbol: string;
-    quantity: number;
-    price: number;
-    totalAmount: number;
-    createdAt: string;
-}
-
 async function getTradeData(userId: string) {
-    await connectToDatabase();
-
-    // Fetch Balance
-    let balanceDoc = await Balance.findOne({ userId });
-    if (!balanceDoc) {
-        balanceDoc = await Balance.create({ userId, amount: 100000 });
+    let balanceRecord = await prisma.balance.findUnique({ where: { userId } });
+    if (!balanceRecord) {
+        balanceRecord = await prisma.balance.create({ data: { userId, amount: 100000 } });
     }
 
-    // Fetch Holdings
-    const holdingsDocs = await Portfolio.find({ userId });
-    const holdings = JSON.parse(JSON.stringify(holdingsDocs));
+    const transactions = await prisma.transaction.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+    });
 
-    // Fetch current prices for holdings to calculate real portfolio value
-    let totalPortfolioValue = 0;
-    const holdingsWithPrice = await Promise.all(holdings.map(async (h: Holding) => {
-        const currentPrice = await getQuote(h.symbol);
-        const price = currentPrice || h.avgPrice; // Fallback to avgPrice if fetch fails
-        totalPortfolioValue += price * h.quantity;
-        return { ...h, currentPrice: price };
-    }));
+    const holdingsMap: Record<string, { quantity: number; costBasis: number }> = {};
+    transactions.forEach(t => {
+        if (!holdingsMap[t.symbol]) {
+            holdingsMap[t.symbol] = { quantity: 0, costBasis: 0 };
+        }
+        if (t.type.toLowerCase() === "buy") {
+            holdingsMap[t.symbol].quantity += t.quantity;
+            holdingsMap[t.symbol].costBasis += t.totalAmount;
+        } else {
+            const avgPrice = holdingsMap[t.symbol].quantity > 0
+                ? holdingsMap[t.symbol].costBasis / holdingsMap[t.symbol].quantity
+                : 0;
+            holdingsMap[t.symbol].quantity -= t.quantity;
+            holdingsMap[t.symbol].costBasis -= avgPrice * t.quantity;
+        }
+    });
 
-    // Fetch Recent Transactions
-    const transactionsDocs = await Transaction.find({ userId }).sort({ createdAt: -1 }).limit(10);
+    const activeHoldings: Holding[] = [];
+    for (const [symbol, data] of Object.entries(holdingsMap)) {
+        if (data.quantity > 0) {
+            const avgPrice = data.costBasis / data.quantity;
+            const currentPrice = 0;
+            activeHoldings.push({
+                symbol,
+                quantity: data.quantity,
+                avgPrice,
+                currentPrice,
+            });
+        }
+    }
+
+    const portfolioValue = activeHoldings.reduce((sum, h) => sum + (h.quantity * h.currentPrice), 0);
 
     return {
-        balance: balanceDoc.amount,
-        holdings: holdingsWithPrice,
-        transactions: JSON.parse(JSON.stringify(transactionsDocs)),
-        portfolioValue: totalPortfolioValue
+        balance: balanceRecord.amount,
+        transactions,
+        holdings: activeHoldings,
+        portfolioValue,
     };
 }
+
+const S = {
+    card: { background: "var(--nt-surface)", border: "1px solid var(--nt-border)", borderRadius: 16, overflow: "hidden" as const },
+    cardHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--nt-border)" },
+    val: { fontFamily: "var(--font-mono)", fontSize: 28, fontWeight: 700, color: "var(--nt-txt)" },
+    th: { textAlign: "right" as const, padding: "12px 18px", color: "var(--nt-txt3)", fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em" },
+    td: { textAlign: "right" as const, padding: "12px 18px", color: "var(--nt-txt2)", fontSize: 13, borderTop: "1px solid var(--nt-border)" }
+};
 
 export default async function TradePage() {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user) {
-        return <div>Please log in to trade.</div>;
+        return <div style={{ padding: 40, color: "var(--nt-txt3)", textAlign: "center" }}>Please log in to view the Trade Center.</div>;
     }
 
-    const { balance, holdings, transactions, portfolioValue } = await getTradeData(session.user.id);
+    const { balance, transactions, holdings, portfolioValue } = await getTradeData(session.user.id);
 
     return (
-        <div className="container mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h1 className="text-3xl font-bold">Trade Center</h1>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 24px 60px", color: "var(--nt-txt)", fontFamily: "var(--font-syne)" }}>
+            <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 24, letterSpacing: "-0.02em" }}>Trade Center</h1>
 
             {/* Account Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="bg-gray-800 border-gray-700">
-                    <CardHeader>
-                        <CardTitle className="text-gray-400 text-sm">Available Cash</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-green-400">
-                            ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gray-800 border-gray-700">
-                    <CardHeader>
-                        <CardTitle className="text-gray-400 text-sm">Portfolio Value (Est.)</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-gray-100">
-                            ${portfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">*Based on real-time market price</p>
-                    </CardContent>
-                </Card>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, marginBottom: 24 }}>
+                <div style={{ ...S.card, padding: 24 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--nt-txt3)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Available Cash</div>
+                    <div style={{ ...S.val, color: "var(--nt-green)" }}>
+                        ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                </div>
+                <div style={{ ...S.card, padding: 24 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--nt-txt3)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Portfolio Value (Est.)</div>
+                    <div style={S.val}>
+                        ${portfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <p style={{ fontSize: 10, color: "var(--nt-txt4)", marginTop: 8 }}>*Based on real-time market price</p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20 }}>
                 {/* Trading Form */}
-                <div className="lg:col-span-1">
+                <div style={{ display: "flex", flexDirection: "column" }}>
                     <TradePageClient />
                 </div>
 
                 {/* Holdings & Recent Activity */}
-                <div className="lg:col-span-2 space-y-8">
-                    <Card className="bg-gray-800 border-gray-700">
-                        <CardHeader>
-                            <CardTitle className="text-gray-100">Your Holdings</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="border-gray-700 hover:bg-transparent">
-                                        <TableHead className="text-gray-400">Symbol</TableHead>
-                                        <TableHead className="text-right text-gray-400">Shares</TableHead>
-                                        <TableHead className="text-right text-gray-400">Avg Price</TableHead>
-                                        <TableHead className="text-right text-gray-400">Current Price</TableHead>
-                                        <TableHead className="text-right text-gray-400">Return</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
+                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div style={S.card}>
+                        <div style={S.cardHead}>
+                            <div style={{ fontSize: 13, fontWeight: 700 }}>Your Holdings</div>
+                        </div>
+                        <div style={{ overflowX: "auto" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ ...S.th, textAlign: "left" }}>Symbol</th>
+                                        <th style={S.th}>Shares</th>
+                                        <th style={S.th}>Avg Price</th>
+                                        <th style={S.th}>Current Price</th>
+                                        <th style={S.th}>Return</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {holdings.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center text-gray-500 py-4">No holdings</TableCell>
-                                        </TableRow>
+                                        <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", padding: 30 }}>No holdings</td></tr>
                                     ) : (
                                         holdings.map((h: Holding) => {
                                             const currentVal = h.currentPrice * h.quantity;
                                             const costBasis = h.avgPrice * h.quantity;
                                             const gainLoss = currentVal - costBasis;
-                                            const gainLossPercent = (gainLoss / costBasis) * 100;
+                                            const gainLossPercent = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
                                             const isPositive = gainLoss >= 0;
 
                                             return (
-                                                <TableRow key={h.symbol} className="border-gray-700 hover:bg-gray-700/50">
-                                                    <TableCell className="font-medium text-gray-200">{h.symbol}</TableCell>
-                                                    <TableCell className="text-right text-gray-200">{h.quantity}</TableCell>
-                                                    <TableCell className="text-right text-gray-200">${h.avgPrice.toFixed(2)}</TableCell>
-                                                    <TableCell className="text-right text-gray-200">${h.currentPrice.toFixed(2)}</TableCell>
-                                                    <TableCell className={`text-right ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                                                <tr key={h.symbol}>
+                                                    <td style={{ ...S.td, textAlign: "left", fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--nt-txt)" }}>{h.symbol}</td>
+                                                    <td style={{ ...S.td, fontFamily: "var(--font-mono)" }}>{h.quantity}</td>
+                                                    <td style={{ ...S.td, fontFamily: "var(--font-mono)" }}>${h.avgPrice.toFixed(2)}</td>
+                                                    <td style={{ ...S.td, fontFamily: "var(--font-mono)", color: "var(--nt-txt)" }}>${h.currentPrice.toFixed(2)}</td>
+                                                    <td style={{ ...S.td, fontFamily: "var(--font-mono)", color: isPositive ? "var(--nt-green)" : "var(--nt-red)", fontWeight: 700 }}>
                                                         {isPositive ? '+' : ''}{gainLossPercent.toFixed(2)}%
-                                                    </TableCell>
-                                                </TableRow>
+                                                    </td>
+                                                </tr>
                                             );
                                         })
                                     )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                    <Card className="bg-gray-800 border-gray-700">
-                        <CardHeader>
-                            <CardTitle className="text-gray-100">Recent Transactions</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="border-gray-700 hover:bg-transparent">
-                                        <TableHead className="text-gray-400">Type</TableHead>
-                                        <TableHead className="text-gray-400">Symbol</TableHead>
-                                        <TableHead className="text-right text-gray-400">Shares</TableHead>
-                                        <TableHead className="text-right text-gray-400">Price</TableHead>
-                                        <TableHead className="text-right text-gray-400">Total</TableHead>
-                                        <TableHead className="text-right text-gray-400">Date</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
+                    <div style={S.card}>
+                        <div style={S.cardHead}>
+                            <div style={{ fontSize: 13, fontWeight: 700 }}>Recent Transactions</div>
+                        </div>
+                        <div style={{ overflowX: "auto" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ ...S.th, textAlign: "left" }}>Type</th>
+                                        <th style={{ ...S.th, textAlign: "left" }}>Symbol</th>
+                                        <th style={S.th}>Shares</th>
+                                        <th style={S.th}>Price</th>
+                                        <th style={S.th}>Total</th>
+                                        <th style={S.th}>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {transactions.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={6} className="text-center text-gray-500 py-4">No transactions yet</TableCell>
-                                        </TableRow>
+                                        <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", padding: 30 }}>No transactions yet</td></tr>
                                     ) : (
-                                        transactions.map((t: TransactionType) => (
-                                            <TableRow key={t._id} className="border-gray-700 hover:bg-gray-700/50">
-                                                <TableCell className={`font-medium uppercase ${t.type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>{t.type}</TableCell>
-                                                <TableCell className="text-gray-200">{t.symbol}</TableCell>
-                                                <TableCell className="text-right text-gray-200">{t.quantity}</TableCell>
-                                                <TableCell className="text-right text-gray-200">${t.price.toFixed(2)}</TableCell>
-                                                <TableCell className="text-right text-gray-200">${t.totalAmount.toFixed(2)}</TableCell>
-                                                <TableCell className="text-right text-gray-400 text-xs">
-                                                    {new Date(t.createdAt).toLocaleDateString()}
-                                                </TableCell>
-                                            </TableRow>
+                                        transactions.map((t) => (
+                                            <tr key={t.id}>
+                                                <td style={{ ...S.td, textAlign: "left", fontWeight: 700, fontSize: 11, textTransform: "uppercase", color: t.type.toLowerCase() === 'buy' ? "var(--nt-green)" : "var(--nt-red)" }}>{t.type}</td>
+                                                <td style={{ ...S.td, textAlign: "left", fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--nt-txt)" }}>{t.symbol}</td>
+                                                <td style={{ ...S.td, fontFamily: "var(--font-mono)" }}>{t.quantity}</td>
+                                                <td style={{ ...S.td, fontFamily: "var(--font-mono)" }}>${t.price.toFixed(2)}</td>
+                                                <td style={{ ...S.td, fontFamily: "var(--font-mono)", color: "var(--nt-txt)" }}>${t.totalAmount.toFixed(2)}</td>
+                                                <td style={{ ...S.td, fontSize: 11 }}>{new Date(t.createdAt).toLocaleDateString()}</td>
+                                            </tr>
                                         ))
                                     )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,8 +1,10 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+﻿# ════════════════════════════════════════════════════════
+# NexTrade — .gitignore
+# ════════════════════════════════════════════════════════
 
-# dependencies
-/node_modules
-/.pnp
+# ── Dependencies ──────────────────────────────────────
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,32 +12,73 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# ── Next.js ───────────────────────────────────────────
+.next/
+out/
 
-# next.js
-/.next/
-/out/
+# ── Production Build ──────────────────────────────────
+build/
+dist/
 
-# production
-/build
+# ── Environment Variables ─────────────────────────────
+.env
+.env.*
+!.env.example
 
-# misc
+# ── IDE / Editor ──────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ── OS Files ──────────────────────────────────────────
 .DS_Store
-*.pem
+Thumbs.db
+Desktop.ini
+*.lnk
 
-# debug
+# ── Debug & Log Files ─────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
+# ── Build / Lint / Debug Artifacts ────────────────────
+build*.log
+build*.txt
+build-out*.txt
+lint*.txt
+lint*.json
+lint-out*.txt
+lint_*.txt
+type_check*.txt
+*.tsbuildinfo
 
-# vercel
+# ── TypeScript ────────────────────────────────────────
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# ── Testing ───────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Prisma ────────────────────────────────────────────
+prisma/migrations/
+
+# ── Vercel ────────────────────────────────────────────
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# ── Misc ──────────────────────────────────────────────
+*.pem
+*.key
+*.cert
+.turbo
+.cache
+
+# ── Gemini / Agents ───────────────────────────────────
+.agents/

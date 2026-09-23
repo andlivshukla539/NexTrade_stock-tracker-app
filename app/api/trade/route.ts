@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
-import { connectToDatabase } from "@/database/mongoose";
-import Balance from "@/database/balance.model";
-import Portfolio from "@/database/models/portfolio.model";
-import Transaction from "@/database/transaction.model";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
     try {
@@ -20,12 +17,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        await connectToDatabase();
-
         // 1. Get or Create Balance
-        let balance = await Balance.findOne({ userId });
+        let balance = await prisma.balance.findUnique({ where: { userId } });
         if (!balance) {
-            balance = await Balance.create({ userId, amount: 100000 }); // Initialize with $100k
+            balance = await prisma.balance.create({ data: { userId, amount: 100000 } }); // Initialize with $100k
         }
 
         const totalCost = quantity * price;
@@ -37,57 +32,72 @@ export async function POST(req: Request) {
             }
 
             // DEDUCT BALANCE
-            balance.amount -= totalCost;
-            await balance.save();
+            balance = await prisma.balance.update({
+                where: { userId },
+                data: { amount: balance.amount - totalCost }
+            });
 
             // UPDATE PORTFOLIO
-            const holding = await Portfolio.findOne({ userId, symbol });
+            const holding = await prisma.portfolio.findFirst({ where: { userId, symbol } });
             if (holding) {
                 // Calculate new average price
                 const totalValue = (holding.quantity * holding.avgPrice) + totalCost;
                 const newQuantity = holding.quantity + quantity;
-                holding.avgPrice = totalValue / newQuantity;
-                holding.quantity = newQuantity;
-                await holding.save();
+                await prisma.portfolio.update({
+                    where: { id: holding.id },
+                    data: {
+                        avgPrice: totalValue / newQuantity,
+                        quantity: newQuantity
+                    }
+                });
             } else {
-                await Portfolio.create({
-                    userId,
-                    symbol,
-                    quantity,
-                    avgPrice: price,
+                await prisma.portfolio.create({
+                    data: {
+                        userId,
+                        symbol,
+                        quantity,
+                        avgPrice: price,
+                    }
                 });
             }
 
         } else if (type === "sell") {
             // CHECK PORTFOLIO
-            const holding = await Portfolio.findOne({ userId, symbol });
+            const holding = await prisma.portfolio.findFirst({ where: { userId, symbol } });
             if (!holding || holding.quantity < quantity) {
                 return NextResponse.json({ error: "Insufficient shares" }, { status: 400 });
             }
 
             // ADD BALANCE
-            balance.amount += totalCost;
-            await balance.save();
+            balance = await prisma.balance.update({
+                where: { userId },
+                data: { amount: balance.amount + totalCost }
+            });
 
             // UPDATE PORTFOLIO
-            holding.quantity -= quantity;
-            if (holding.quantity <= 0) {
-                await Portfolio.deleteOne({ _id: holding._id });
+            const newQuantity = holding.quantity - quantity;
+            if (newQuantity <= 0) {
+                await prisma.portfolio.delete({ where: { id: holding.id } });
             } else {
-                await holding.save();
+                await prisma.portfolio.update({
+                    where: { id: holding.id },
+                    data: { quantity: newQuantity }
+                });
             }
         } else {
             return NextResponse.json({ error: "Invalid transaction type" }, { status: 400 });
         }
 
         // LOG TRANSACTION
-        await Transaction.create({
-            userId,
-            symbol,
-            type,
-            quantity,
-            price,
-            totalAmount: totalCost,
+        await prisma.transaction.create({
+            data: {
+                userId,
+                symbol,
+                type: type.toUpperCase(), // Assuming type maps to enum BUY/SELL
+                quantity,
+                price,
+                totalAmount: totalCost,
+            }
         });
 
         return NextResponse.json({ success: true, newBalance: balance.amount });

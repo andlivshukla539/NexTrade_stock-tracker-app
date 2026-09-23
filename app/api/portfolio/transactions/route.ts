@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/database/mongoose";
-import Transaction from "@/database/transaction.model";
+﻿import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 
@@ -15,12 +14,11 @@ export async function GET(req: Request) {
         const limitParam = url.searchParams.get("limit");
         const limit = limitParam ? parseInt(limitParam, 10) : 8;
 
-        await connectToDatabase();
-
-        const transactions = await Transaction.find({ userId: session.user.id })
-            .sort({ createdAt: -1 }) // Newest first
-            .limit(limit)
-            .lean();
+        const transactions = await prisma.transaction.findMany({
+            where: { userId: session.user.id },
+            orderBy: { createdAt: 'desc' }, // Newest first
+            take: limit
+        });
 
         return NextResponse.json({ transactions });
     } catch (error) {

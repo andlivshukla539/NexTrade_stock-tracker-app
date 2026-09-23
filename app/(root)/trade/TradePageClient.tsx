@@ -1,7 +1,6 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TransactionForm, { TransactionData } from "@/components/forms/TransactionForm";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -25,7 +24,6 @@ export default function TradePageClient() {
                 setCurrentPrice(price);
             } else {
                 setCurrentPrice(null);
-                // Optional: toast.error("Could not fetch price for symbol");
             }
         } catch (error) {
             console.error("Error fetching quote:", error);
@@ -68,12 +66,17 @@ export default function TradePageClient() {
         }
     };
 
+    const S = {
+        card: { background: "var(--nt-surface)", border: "1px solid var(--nt-border)", borderRadius: 16, overflow: "hidden" as const },
+        cardHead: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--nt-border)" },
+    };
+
     return (
-        <Card className="bg-gray-800 border-gray-700 h-full">
-            <CardHeader>
-                <CardTitle className="text-gray-100">Execute Trade</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <div style={{ ...S.card, height: "100%" }}>
+            <div style={S.cardHead}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>Execute Trade</div>
+            </div>
+            <div style={{ padding: 18 }}>
                 <TransactionForm
                     onSubmit={handleTrade}
                     isLoading={loading}
@@ -81,7 +84,7 @@ export default function TradePageClient() {
                     isFetchingPrice={isFetchingPrice}
                     onSymbolChange={handleSymbolChange}
                 />
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

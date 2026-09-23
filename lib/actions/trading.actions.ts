@@ -1,9 +1,6 @@
 'use server';
 
-import { connectToDatabase } from '@/database/mongoose';
-import Portfolio from '@/database/models/portfolio.model';
-import Balance from '@/database/balance.model';
-import Transaction from '@/database/transaction.model';
+import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/better-auth/auth';
 import { headers } from 'next/headers';
 
@@ -26,14 +23,12 @@ export async function executePaperTrade({
         const userId = session?.user?.id;
         if (!userId) throw new Error("Unauthorized");
 
-        await connectToDatabase();
-
         const totalAmount = quantity * price;
 
         // 1. Get or Create Balance
-        let balanceDoc = await Balance.findOne({ userId });
+        let balanceDoc = await prisma.balance.findUnique({ where: { userId } });
         if (!balanceDoc) {
-            balanceDoc = await Balance.create({ userId, amount: 100000 });
+            balanceDoc = await prisma.balance.create({ data: { userId, amount: 100000 } });
         }
 
         // 2. Process Buy
@@ -42,50 +37,61 @@ export async function executePaperTrade({
                 return { success: false, error: "Insufficient funds" };
             }
             // Deduct balance
-            balanceDoc.amount -= totalAmount;
-            await balanceDoc.save();
+            await prisma.balance.update({
+                where: { userId },
+                data: { amount: balanceDoc.amount - totalAmount }
+            });
 
             // Update Holdings
-            const holding = await Portfolio.findOne({ userId, symbol });
+            const holdings = await prisma.portfolio.findMany({ where: { userId, symbol } });
+            const holding = holdings[0];
             if (holding) {
                 const newQty = holding.quantity + quantity;
                 const newAvgPrice = ((holding.quantity * holding.avgPrice) + totalAmount) / newQty;
-                holding.quantity = newQty;
-                holding.avgPrice = newAvgPrice;
-                await holding.save();
+                await prisma.portfolio.update({
+                    where: { id: holding.id },
+                    data: { quantity: newQty, avgPrice: newAvgPrice }
+                });
             } else {
-                await Portfolio.create({ userId, symbol, quantity, avgPrice: price });
+                await prisma.portfolio.create({ data: { userId, symbol, quantity, avgPrice: price } });
             }
         }
 
         // 3. Process Sell
         else if (type === 'sell') {
-            const holding = await Portfolio.findOne({ userId, symbol });
+            const holdings = await prisma.portfolio.findMany({ where: { userId, symbol } });
+            const holding = holdings[0];
             if (!holding || holding.quantity < quantity) {
                 return { success: false, error: "Insufficient shares to sell" };
             }
 
             // Add to balance
-            balanceDoc.amount += totalAmount;
-            await balanceDoc.save();
+            await prisma.balance.update({
+                where: { userId },
+                data: { amount: balanceDoc.amount + totalAmount }
+            });
 
             // Deduct holding
             if (holding.quantity === quantity) {
-                await Portfolio.deleteOne({ _id: holding._id });
+                await prisma.portfolio.delete({ where: { id: holding.id } });
             } else {
-                holding.quantity -= quantity;
-                await holding.save();
+                await prisma.portfolio.update({
+                    where: { id: holding.id },
+                    data: { quantity: holding.quantity - quantity }
+                });
             }
         }
 
         // 4. Record Transaction
-        await Transaction.create({
-            userId,
-            symbol,
-            type,
-            quantity,
-            price,
-            totalAmount
+        await prisma.transaction.create({
+            data: {
+                userId,
+                symbol,
+                type,
+                quantity,
+                price,
+                totalAmount
+            }
         });
 
         return { success: true };
@@ -104,10 +110,11 @@ export async function getTransactionHistory() {
         const userId = session?.user?.id;
         if (!userId) return [];
 
-        await connectToDatabase();
-
-        const history = await Transaction.find({ userId }).sort({ createdAt: -1 }).lean();
-        return JSON.parse(JSON.stringify(history));
+        const history = await prisma.transaction.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
+        });
+        return history;
     } catch (err) {
         console.error('getTransactionHistory error:', err);
         return [];
@@ -123,18 +130,8 @@ export async function getAvailableBalance() {
         const userId = session?.user?.id;
         if (!userId) return 0;
 
-        await connectToDatabase();
-
-        // Mongoose generic typing workaround
-        const doc = await Balance.findOne({ userId }).lean() as { amount?: number } | { amount?: number }[] | null;
-
-        if (doc && Array.isArray(doc)) {
-            return doc[0]?.amount ?? 100000;
-        } else if (doc) {
-            return doc.amount ?? 100000;
-        }
-
-        return 100000;
+        const doc = await prisma.balance.findUnique({ where: { userId } });
+        return doc?.amount ?? 100000;
     } catch (err) {
         console.error('getAvailableBalance error:', err);
         return 0;

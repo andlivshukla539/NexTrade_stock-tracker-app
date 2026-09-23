@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { connectToDatabase } from "@/database/mongoose";
-import Balance from "@/database/balance.model";
-import Transaction from "@/database/transaction.model";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/better-auth/auth";
 
 export async function POST(req: NextRequest) {
@@ -33,32 +31,37 @@ export async function POST(req: NextRequest) {
 
         if (isAuthentic) {
             // Payment is successful and verified
-            await connectToDatabase();
             const userId = session.user.id;
 
             // We expect the amount in dollars here.
             const depositAmount = Number(amount);
 
             // Update user's balance
-            const balance = await Balance.findOne({ userId });
+            const balance = await prisma.balance.findUnique({ where: { userId } });
             if (balance) {
-                balance.amount += depositAmount;
-                await balance.save();
+                await prisma.balance.update({
+                    where: { userId },
+                    data: { amount: balance.amount + depositAmount }
+                });
             } else {
-                await Balance.create({
-                    userId,
-                    amount: depositAmount,
+                await prisma.balance.create({
+                    data: {
+                        userId,
+                        amount: depositAmount,
+                    }
                 });
             }
 
             // Record transaction
-            await Transaction.create({
-                userId,
-                symbol: "USD",
-                type: "deposit",
-                quantity: depositAmount,
-                price: 1,
-                totalAmount: depositAmount,
+            await prisma.transaction.create({
+                data: {
+                    userId,
+                    symbol: "USD",
+                    type: "DEPOSIT",
+                    quantity: depositAmount,
+                    price: 1,
+                    totalAmount: depositAmount,
+                }
             });
 
             return NextResponse.json({ success: true }, { status: 200 });

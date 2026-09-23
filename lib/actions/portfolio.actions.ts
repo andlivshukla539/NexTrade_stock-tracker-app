@@ -1,8 +1,6 @@
 'use server';
 
-import { connectToDatabase } from '@/database/mongoose';
-import Portfolio from '@/database/models/portfolio.model';
-import { Watchlist } from '@/database/models/watchlist.model';
+import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/better-auth/auth';
 import { headers } from 'next/headers';
 
@@ -18,11 +16,9 @@ export async function getPortfolioSummary() {
         const userId = session?.user?.id;
         if (!userId) return { totalInvested: 0, holdingCount: 0, watchlistCount: 0 };
 
-        await connectToDatabase();
-
         const [holdings, watchlistCount] = await Promise.all([
-            Portfolio.find({ userId }).lean(),
-            Watchlist.countDocuments({ userId }),
+            prisma.portfolio.findMany({ where: { userId } }),
+            prisma.watchlist.count({ where: { userId } }),
         ]);
 
         const totalInvested = holdings.reduce((sum, h) => sum + (h.quantity * h.avgPrice), 0);

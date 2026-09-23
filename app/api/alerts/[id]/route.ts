@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/database/mongoose";
-import Alert from "@/database/alert.model";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 
@@ -16,13 +15,16 @@ export async function DELETE(
 
         const { id } = await params;
 
-        await connectToDatabase();
-        const deletedAlert = await Alert.findOneAndDelete({
-            _id: id,
-            userId: session.user.id,
+        // Prisma doesn't have a single "findOneAndDelete" that doesn't throw if not found, 
+        // so we check if it belongs to user first, then delete. Or use deleteMany which doesn't throw.
+        const deletedAlert = await prisma.alert.deleteMany({
+            where: {
+                id: id,
+                userId: session.user.id,
+            }
         });
 
-        if (!deletedAlert) {
+        if (deletedAlert.count === 0) {
             return NextResponse.json({ error: "Alert not found" }, { status: 404 });
         }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/database/mongoose';
+import { prisma } from '@/lib/prisma';
 import { transporter } from '@/lib/nodemailer';
 
 export async function GET() {
@@ -9,8 +9,8 @@ export async function GET() {
   let dbOk = false;
   let dbError: string | null = null;
   try {
-    const mongoose = await connectToDatabase();
-    dbOk = !!mongoose?.connection?.readyState;
+    await prisma.$queryRaw`SELECT 1`;
+    dbOk = true;
   } catch (e) {
     dbError = e instanceof Error ? e.message : 'Unknown DB error';
   }

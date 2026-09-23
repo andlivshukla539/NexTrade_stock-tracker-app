@@ -1,39 +1,30 @@
-import React from "react";
-import { env } from "@/lib/env";
+﻿import React from "react";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
-import { connectToDatabase } from "@/database/mongoose";
-import Balance from "@/database/balance.model";
-import Portfolio from "@/database/models/portfolio.model";
+import { prisma } from "@/lib/prisma";
+import { getQuote } from "@/lib/actions/finnhub.actions";
 import { TradeCenterExecute } from "@/components/portfolio/TradeCenterExecute";
 import { TradeCenterHoldings } from "@/components/portfolio/TradeCenterHoldings";
 import { TradeCenterTransactions } from "@/components/portfolio/TradeCenterTransactions";
 import "./trade-center.css";
 
 async function getPortfolioData(userId: string) {
-    await connectToDatabase();
-
-    // Fetch Balance
-    let balanceDoc = await Balance.findOne({ userId });
-    if (!balanceDoc) {
-        balanceDoc = await Balance.create({ userId, amount: 100000 });
+    // Fetch or create Balance via Prisma
+    let balanceRecord = await prisma.balance.findUnique({ where: { userId } });
+    if (!balanceRecord) {
+        balanceRecord = await prisma.balance.create({ data: { userId, amount: 100000 } });
     }
 
-    // Fetch Holdings
-    const holdingsDocs = await Portfolio.find({ userId });
+    // Fetch Holdings via Prisma
+    const holdingsDocs = await prisma.portfolio.findMany({ where: { userId } });
 
-    // Fetch current price
+    // Fetch current prices in parallel
     const holdings = await Promise.all(
         holdingsDocs.map(async (doc) => {
             let currentPrice = doc.avgPrice;
-
             try {
-                const res = await fetch(
-                    `https://finnhub.io/api/v1/quote?symbol=${doc.symbol}&token=${env.NEXT_PUBLIC_FINNHUB_API_KEY}`,
-                    { next: { revalidate: 60 } }
-                );
-                const data = await res.json();
-                if (data.c) currentPrice = data.c;
+                const price = await getQuote(doc.symbol);
+                if (price) currentPrice = price;
             } catch (e) {
                 console.error(`Failed to fetch price for ${doc.symbol}`, e);
             }
@@ -48,7 +39,7 @@ async function getPortfolioData(userId: string) {
     );
 
     return {
-        balance: balanceDoc.amount,
+        balance: balanceRecord.amount,
         holdings,
     };
 }

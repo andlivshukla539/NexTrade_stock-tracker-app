@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/database/mongoose";
-import Alert from "@/database/alert.model";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 
@@ -11,8 +10,10 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        await connectToDatabase();
-        const alerts = await Alert.find({ userId: session.user.id }).sort({ createdAt: -1 });
+        const alerts = await prisma.alert.findMany({
+            where: { userId: session.user.id },
+            orderBy: { createdAt: 'desc' }
+        });
 
         return NextResponse.json(alerts);
     } catch (error) {
@@ -35,12 +36,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        await connectToDatabase();
-        const newAlert = await Alert.create({
-            userId: session.user.id,
-            symbol: symbol.toUpperCase(),
-            targetPrice,
-            condition,
+        const newAlert = await prisma.alert.create({
+            data: {
+                userId: session.user.id,
+                symbol: symbol.toUpperCase(),
+                targetPrice,
+                condition,
+            }
         });
 
         return NextResponse.json(newAlert, { status: 201 });

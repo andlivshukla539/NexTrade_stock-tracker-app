@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -18,7 +18,7 @@ const Schema = z.object({
 });
 type FormData = z.infer<typeof Schema>;
 
-// ── Small SVG icons ────────────────────────────────────────────────────────────
+// â”€â”€ Small SVG icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GoogleG() {
     return (
@@ -31,7 +31,7 @@ function GoogleG() {
     );
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function SignIn() {
     const router = useRouter();
@@ -45,7 +45,7 @@ export default function SignIn() {
 
     const onSubmit = useCallback(async (data: FormData) => {
         setLoading(true); setError(null);
-        const res = await signInWithEmail(data);
+        const res = await signInWithEmail({ email: data.email, password: data.password, rememberMe: data.remember });
         setLoading(false);
         if (res.success) { router.push("/"); router.refresh(); }
         else setError(res.error || "Sign in failed. Please try again.");
@@ -54,7 +54,15 @@ export default function SignIn() {
     const social = useCallback(async (provider: "google" | "apple") => {
         setLoading(true); setError(null);
         try { await authClient.signIn.social({ provider, callbackURL: "/" }); }
-        catch { setError(`${provider} sign-in failed.`); setLoading(false); }
+        catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            if (msg.includes("CLIENT_ID") || msg.includes("clientId") || msg.includes("not configured")) {
+                setError("Google sign-in is not configured. Please use email & password.");
+            } else {
+                setError("Social sign-in failed. Please try again.");
+            }
+            setLoading(false);
+        }
     }, []);
 
     return (
@@ -66,7 +74,7 @@ export default function SignIn() {
             transition={{ duration: 0.5, ease: "easeOut" }}
         >
 
-            {/* ── Top badges ── */}
+            {/* â”€â”€ Top badges â”€â”€ */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E8C547]/30 bg-[#E8C547]/[0.07]">
                     {/* shield icon */}
@@ -81,7 +89,7 @@ export default function SignIn() {
                 </div>
             </div>
 
-            {/* ── Heading ── */}
+            {/* â”€â”€ Heading â”€â”€ */}
             <div className="mb-8">
                 <h1
                     className="font-serif font-extrabold leading-[1.05] mb-1"
@@ -98,7 +106,7 @@ export default function SignIn() {
                 </p>
             </div>
 
-            {/* ── Social buttons ── */}
+            {/* â”€â”€ Social buttons â”€â”€ */}
             <div className="mb-7">
                 <button
                     type="button"
@@ -111,7 +119,7 @@ export default function SignIn() {
                 </button>
             </div>
 
-            {/* ── Divider ── */}
+            {/* â”€â”€ Divider â”€â”€ */}
             <div className="flex items-center gap-4 mb-7">
                 <div className="flex-1 h-px bg-white/[0.07]" />
                 <span className="text-[10px] font-semibold tracking-[0.2em] uppercase" style={{ color: "#525252" }}>
@@ -120,7 +128,7 @@ export default function SignIn() {
                 <div className="flex-1 h-px bg-white/[0.07]" />
             </div>
 
-            {/* ── Error ── */}
+            {/* â”€â”€ Error â”€â”€ */}
             {error && (
                 <div className="mb-5 flex items-center gap-2 p-3.5 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
@@ -130,7 +138,7 @@ export default function SignIn() {
                 </div>
             )}
 
-            {/* ── Form ── */}
+            {/* â”€â”€ Form â”€â”€ */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
                 {/* Email */}
@@ -248,7 +256,7 @@ export default function SignIn() {
                 </button>
             </form>
 
-            {/* ── Trust bar ── */}
+            {/* â”€â”€ Trust bar â”€â”€ */}
             <div className="mt-8 pt-6 border-t border-white/[0.05]">
                 <div className="flex items-center justify-center gap-6">
                     {[
@@ -267,7 +275,7 @@ export default function SignIn() {
                 <p className="mt-5 text-center text-[13px]" style={{ color: "#525252" }}>
                     No account?{" "}
                     <Link href="/sign-up" className="font-semibold transition-colors" style={{ color: "#E8C547" }}>
-                        Create one free →
+                        Create one free â†’
                     </Link>
                 </p>
             </div>

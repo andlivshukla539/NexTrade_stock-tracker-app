@@ -1,20 +1,16 @@
-'use server';
+﻿'use server';
 
-import { connectToDatabase } from "@/database/mongoose";
+import { prisma } from '@/lib/prisma';
 
 export const getAllUsersForNewsEmail = async () => {
     try {
-        const mongoose = await connectToDatabase();
-        const db = mongoose.connection.db;
-        if (!db) throw new Error('Mongoose connection not connected');
-
-        const users = await db.collection('user').find(
-            { email: { $exists: true, $ne: null } },
-            { projection: { _id: 1, id: 1, email: 1, name: 1, country: 1 } }
-        ).toArray();
+        const users = await prisma.user.findMany({
+            where: { email: { not: "" } },
+            select: { id: true, email: true, name: true }
+        });
 
         return users.filter((user) => user.email && user.name).map((user) => ({
-            id: user.id || user._id?.toString() || '',
+            id: user.id,
             email: user.email,
             name: user.name
         }))
@@ -26,11 +22,7 @@ export const getAllUsersForNewsEmail = async () => {
 
 export const getPlatformStats = async () => {
     try {
-        const mongoose = await connectToDatabase();
-        if (!mongoose.connection.db) throw new Error('DB not connected');
-
-        // Get actual user count
-        const activeTraders = await mongoose.connection.db.collection('user').countDocuments();
+        const activeTraders = await prisma.user.count();
 
         return {
             activeTraders,
