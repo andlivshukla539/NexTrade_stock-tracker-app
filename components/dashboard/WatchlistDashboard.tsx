@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect, useCallback, useContext, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { createAlert, removeAlert } from "@/lib/actions/alert.actions";
 import { removeFromWatchlist } from "@/lib/actions/watchlist.actions";
@@ -95,7 +95,7 @@ export default function WatchlistDashboard({
     const [newSym, setNewSym] = useState("");
     const [newCond, setNewCond] = useState("Price Above");
     const [newTarget, setNewTarget] = useState("");
-    const [newFreq, setNewFreq] = useState("Once");
+    const [newFreq] = useState("Once");
 
     const handleRemoveFromWatchlist = async (sym: string, listName: string) => {
         try {
@@ -217,7 +217,7 @@ export default function WatchlistDashboard({
                         </div>
                         <div style={S.tabGroup}>
                             {["All", "Active", "Triggered"].map(t => (
-                                <button key={t} onClick={() => setAlertTab(t as any)} style={{ padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: alertTab === t ? "var(--nt-surface3)" : "transparent", color: alertTab === t ? "var(--nt-txt)" : "var(--nt-txt3)", border: "none", cursor: "pointer" }}>
+                                <button key={t} onClick={() => setAlertTab(t as "All" | "Active" | "Triggered")} style={{ padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: alertTab === t ? "var(--nt-surface3)" : "transparent", color: alertTab === t ? "var(--nt-txt)" : "var(--nt-txt3)", border: "none", cursor: "pointer" }}>
                                     {t}
                                 </button>
                             ))}
