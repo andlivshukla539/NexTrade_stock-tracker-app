@@ -10,14 +10,14 @@ import { useDebounce } from "@/hooks/useDebounce";
 interface SearchCommandProps {
     renderAs?: 'button' | 'text';
     label?: string;
-    initialStocks?: unknown[];
+    initialStocks?: { symbol: string, name?: string, exchange?: string, type?: string }[];
 }
 
 export default function SearchCommand({ renderAs = 'button', label = 'Add stock', initialStocks }: SearchCommandProps) {
     const [open, setOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [loading, setLoading] = useState(false)
-    const [stocks, setStocks] = useState<unknown[]>(initialStocks || []);
+    const [stocks, setStocks] = useState<{ symbol: string, name?: string, exchange?: string, type?: string }[]>(initialStocks || []);
 
     const isSearchMode = !!searchTerm.trim();
     const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
